@@ -20,13 +20,14 @@ if(is_god($_COOKIE['admin'])) {
       $makepass = "";
       $strs = "abc2def3ghj4kmn5opq6rst7uvw8xyz9";
       for($x=0; $x < 20; $x++) {
-        mt_srand ((double) microtime() * 1000000);
+        //mt_srand ((double) microtime() * 1000000);
+		mt_srand(0, MT_RAND_MT19937);
         $str[$x] = substr($strs, mt_rand(0, strlen($strs)-1), 1);
         $makepass = $makepass.$str[$x];
       }
       $xpassword_md5 = md5($makepass);
       $xpassword_crypt = crypt($makepass);
-      if(!get_magic_quotes_runtime()) { $makepass = addslashes($makepass); }
+	  $makepass = addslashes($makepass); 
       if(strtolower($a_name) == "god") { $is_god = 1; } else { $is_god = 0; }
       $result = $db->sql_query("INSERT INTO `".$prefix."_nsnst_admins` (`aid`, `login`, `protected`, `password`, `password_md5`, `password_crypt`) VALUES ('$a_aid', '$a_aid', '$is_god', '$makepass', '$xpassword_md5', '$xpassword_crypt')");
       $db->sql_query("OPTIMIZE TABLE ".$prefix."_nsnst_admins");

@@ -50,13 +50,43 @@ $userpage = 1;
 
 global $cookie;
 
-$username = Fix_Quotes($_REQUEST['username']);
-$redirect = $_REQUEST['redirect'];
-$module = $_REQUEST['module'];
-$user_password = $_REQUEST['user_password'];
-$mode = $_REQUEST['mode'];
-$t = $_REQUEST['t'];
-$p = $_REQUEST['p'];
+if(!isset($op))
+$op = '';
+
+if (isset($_REQUEST['username'])) 
+{
+  $username = Fix_Quotes($_REQUEST['username']);
+}
+
+if (isset($_REQUEST['redirect'])) 
+{
+  $redirect = $_REQUEST['redirect'];
+}
+
+if (isset($_REQUEST['module'])) 
+{
+  $module = $_REQUEST['module'];
+}
+
+if (isset($_REQUEST['user_password'])) 
+{
+  $user_password = $_REQUEST['user_password'];
+}
+
+if (isset($_REQUEST['mode'])) 
+{
+  $mode = $_REQUEST['mode'];
+}
+
+if (isset($_REQUEST['t'])) 
+{
+  $t = $_REQUEST['t'];
+}
+
+if (isset($_REQUEST['p'])) 
+{
+  $p = $_REQUEST['p'];
+}
 
 include(NUKE_MODULES_DIR.$module_name.'/navbar.php');
 include(NUKE_MODULES_DIR.$module_name.'/includes/cookiecheck.php');
@@ -176,6 +206,7 @@ switch($op):
         $db->sql_query("UPDATE ".$user_prefix."_users SET agreedtos='1' WHERE username='$username'");
         endif;
 		
+		if(isset($redirect))
 		$forward = str_replace("redirect=", "", "$redirect");
         
 		if (preg_match("#privmsg#", $forward)): 
@@ -199,7 +230,7 @@ switch($op):
 		  AND !empty($setinfo['user_password']) 
 		  AND $setinfo['user_active'] >0 AND $setinfo['user_level'] >0): 
         
-          $dbpass     = $setinfo['user_password'];
+          $dbpass         = $setinfo['user_password'];
           $non_crypt_pass = $user_password;
           $old_crypt_pass = crypt($user_password,substr($dbpass,0,2));
           
@@ -418,7 +449,8 @@ switch($op):
              include(NUKE_MODULES_DIR.$module_name.'/public/new_user2.php');
 			 # if admin approval is not required and user activate is required 
 			 elseif ($ya_config['requireadmin'] == 0 AND $ya_config['useactivate'] == 1) 
-             include(NUKE_MODULES_DIR.$module_name.'/public/new_user3.php');
+             //include(NUKE_MODULES_DIR.$module_name.'/public/new_user3.php');
+			 include(NUKE_MODULES_DIR.$module_name.'/public/new_user_registration_no_validation.php');
           endif;
         endif;
       else: 

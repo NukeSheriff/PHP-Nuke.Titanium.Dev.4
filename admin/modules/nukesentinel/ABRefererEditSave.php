@@ -15,7 +15,7 @@ if (!defined('NUKESENTINEL_ADMIN')) {
    die ('You can\'t access this file directly...');
 }
 
-if(!get_magic_quotes_runtime()) { $referer = addslashes($referer); }
+$referer = addslashes($referer); 
 $testnum1 = $db->sql_numrows($db->sql_query("SELECT * FROM `".$prefix."_nsnst_referers` WHERE `referer`='".$referer."' AND `rid`!='".$rid."'"));
 if($testnum1 > 0) {
   include_once(NUKE_BASE_DIR.'header.php');
@@ -26,7 +26,7 @@ if($testnum1 > 0) {
   referermenu();
   CloseMenu();
   CloseTable();
-  echo '<br />'."\n";
+
   OpenTable();
   echo '<center><strong>'._AB_REFEREREXISTS.'</strong></center><br />'."\n";
   echo '<center><strong>'._GOBACK.'</strong></center><br />'."\n";
@@ -41,7 +41,7 @@ if($testnum1 > 0) {
   referermenu();
   CloseMenu();
   CloseTable();
-  echo '<br />'."\n";
+
   OpenTable();
   echo '<center><strong>'._AB_REFEREREMPTY.'</strong></center><br />'."\n";
   echo '<center><strong>'._GOBACK.'</strong></center><br />'."\n";

@@ -143,16 +143,16 @@ $lang['Rebuild_Search'] = 'Rebuild Search';
 $lang['Admin'] = 'Administration';
 $lang['Not_admin'] = 'You are not authorized to administer this board';
 $lang['Welcome_phpBB'] = 'Welcome to phpBB';
-$lang['Admin_intro'] = 'Thank you for choosing phpBB as your forum solution. This screen will give you a quick overview of all the various statistics of your board. You can get back to this page by clicking on the <u>Admin [Forums]</u> link in the left pane. To return to the index of your board, click the <u>Forums Index</u> link or the phpBB logo also in the left pane. The other links on the left hand side of this screen will allow you to control every aspect of your forum experience. Each screen will have instructions on how to use the tools.';
+$lang['Admin_intro'] = 'Thank you for choosing PHP-Nuke Titanium and phpBB Titanium as your CMS solution. This screen will give you a quick overview of all the various statistics of your forums. You can get back to this page by clicking on the <u>Admin [Forums]</u> link in the left pane. To return to the index of your board, click the <u>Forums Index</u> link or the phpBB logo also in the left pane. The other links on the left hand side of this screen will allow you to control every aspect of your forum experience. Each screen will have instructions on how to use the tools.';
 $lang['Main_index'] = 'Forum Index';
 $lang['Forum_stats'] = 'Forum Statistics';
 $lang['Preview_forum'] = 'Preview Forum';
 /*****[BEGIN]******************************************
  [ Mod:     Forum ACP Administration Links     v1.0.0 ]
  ******************************************************/
-$lang['Admin_Index'] = 'Admin [Forums]';
-$lang['Admin_Nuke'] = 'Admin [Nuke-Evo]';
-$lang['Home_Nuke'] = 'Home [Nuke-Evo]';
+$lang['Admin_Index'] = 'phpBB Titanium Admin';
+$lang['Admin_Nuke'] = 'PHP-Nuke Titanium Admin';
+$lang['Home_Nuke'] = 'PHP-Nuke Titanium Home';
 /*****[END]********************************************
  [ Mod:     Forum ACP Administration Links     v1.0.0 ]
  ******************************************************/
@@ -167,7 +167,7 @@ $lang['Number_topics'] = 'Number of topics';
 $lang['Topics_per_day'] = 'Topics per day';
 $lang['Number_users'] = 'Number of users';
 $lang['Users_per_day'] = 'Users per day';
-$lang['Board_started'] = 'Board started';
+$lang['Board_started'] = 'Developer(s) Start Date';
 $lang['Avatar_dir_size'] = 'Avatar directory size';
 $lang['Database_size'] = 'Database size';
 $lang['Gzip_compression'] ='Gzip compression';
@@ -744,13 +744,13 @@ $lang['wrap_units'] = 'characters';
 //
 // Version Check
 //
-$lang['Version_up_to_date'] = 'Your installation is up to date, no updates are available for your version of phpBB.';
-$lang['Version_not_up_to_date'] = 'Your installation does <strong>not</strong> seem to be up to date. Updates are available for your version of phpBB.';
-$lang['Latest_version_info'] = 'The latest available version is <strong>phpBB %s</strong>. ';
-$lang['Current_version_info'] = 'You are running <strong>phpBB %s</strong>.';
-$lang['Connect_socket_error'] = 'Unable to open connection to phpBB Server, reported error is:<br />%s';
+$lang['Version_up_to_date'] = 'Your installation is up to date, no updates are available for your version of phpBB Titanium.';
+$lang['Version_not_up_to_date'] = 'Your installation does <strong>not</strong> seem to be up to date. Updates are available for your version of phpBB Titanium.';
+$lang['Latest_version_info'] = 'The latest available version is <strong>phpBB Titanium %s</strong>. ';
+$lang['Current_version_info'] = 'You are running <strong>phpBB Titanium '.PHPBB_TITANIUM.'</strong>.';
+$lang['Connect_socket_error'] = 'Unable to open connection to phpBB Titanium Server, reported error is:<br />%s';
 $lang['Socket_functions_disabled'] = 'Unable to use socket functions.';
-$lang['Mailing_list_subscribe_reminder'] = 'For the latest information on updates to phpBB, why not <a href="http://www.phpbb.com/support/" target="_new">subscribe to our mailing list</a>.';
+$lang['Mailing_list_subscribe_reminder'] = 'For the latest information on updates for phpBB Titanium, send a <u><a href="https://www.php-nuke-titanium.86it.us/modules.php?name=Private_Messages&mode=post&u=3/" target="_new">Private Message</a></u> to Ernest Allen Buffington.';
 $lang['Version_information'] = 'Version Information';
 
 /*****[BEGIN]******************************************
@@ -766,9 +766,9 @@ $lang['Deactivated_Users'] = 'Members in need of Activation';
 $lang['Users_with_Admin_Privileges'] = 'Members with administrator privileges';
 $lang['Users_with_Mod_Privileges'] = 'Members with moderator privileges';
 $lang['DB_size'] = 'Size of the database';
-$lang['Version_of_board'] = 'Version of <a href="http://www.phpbb.com">phpbb</a>';
-$lang['Version_of_PHP'] = 'Version of <a href="http://www.php.net/">PHP</a>';
-$lang['Version_of_MySQL'] = 'Version of <a href="http://www.mysql.com/">MySQL</a>';
+$lang['Version_of_board'] = 'Version of <a href="http://www.php-nuke-titanium.86it.us" target="_blank">phpBB Titanium</a>';
+$lang['Version_of_PHP'] = 'Version of <a href="http://www.php.net/" target="_blank">PHP</a>';
+$lang['Version_of_MySQL'] = 'Version of <a href="https://mariadb.org/" target="_blank">MariaDB</a>';
 /*****[END]********************************************
  [ Mod:    Advance Admin Index Stats           v1.0.0 ]
  ******************************************************/
@@ -1222,7 +1222,7 @@ $lang['group_count_explain'] = 'When users have posted more posts than this valu
 /*****[END]********************************************
  [ Mod:    Auto Group                          v1.2.2 ]
  ******************************************************/
- 
+
 /*****[BEGIN]******************************************
  [ Mod:    Forumtitle as Weblink               v1.2.2 ]
  ******************************************************/ 
@@ -1233,7 +1233,7 @@ $lang['Forum_link_target'] = 'Link open a new window';
 /*****[END]********************************************
  [ Mod:    Forumtitle as Weblink               v1.2.2 ]
  ******************************************************/ 
- 
+
 /*****[BEGIN]******************************************
  [ Mod:     Member Country Flags               v2.0.7 ]
  ******************************************************/ 
@@ -1260,7 +1260,7 @@ $lang['Click_return_flagadmin'] = 'Click %sHere%s to return to Flag Administrati
 /*****[END]********************************************
  [ Mod:     Member Country Flags               v2.0.7 ]
  ******************************************************/
- 
+
 /*****[BEGIN]******************************************
  [ Mod:     Forum Icons                        v1.0.4 ]
  ******************************************************/
@@ -1268,7 +1268,7 @@ $lang['Forum_icon'] = 'Forum icon';
 /*****[END]********************************************
  [ Mod:     Forum Icons                        v1.0.4 ]
  ******************************************************/
- 
+
 /*****[BEGIN]******************************************
  [ Mod:    Birthdays                           v3.0.0 ]
  ******************************************************/
@@ -1291,7 +1291,7 @@ $lang['bday_send_greeting_admin_explain'] = 'Your members will choose either one
 /*****[END]********************************************
  [ Mod:    Birthdays                           v3.0.0 ]
  ******************************************************/
- 
+
 /*****[BEGIN]******************************************
  [ Mod:    Thank You Mod                       v1.1.8 ]
  ******************************************************/
@@ -1299,7 +1299,7 @@ $lang['use_thank'] = 'Allow to Thank posts';
 /*****[END]********************************************
  [ Mod:    Thank You Mod                       v1.1.8 ]
  ******************************************************/
- 
+
 /*****[BEGIN]******************************************
  [ Mod:     Users Reputations Systems          v1.0.0 ]
  ******************************************************/
@@ -1325,7 +1325,7 @@ $lang['Default_amount'] = 'Turn the simple version on and set the default amount
 /*****[END]********************************************
  [ Mod:     Users Reputations System           v1.0.0 ]
  ******************************************************/ 
- 
+
 /*****[BEGIN]*****************************************
 [ Mod: Inline Banner Ad                       v1.2.3 ]
 ******************************************************/

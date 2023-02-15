@@ -2,7 +2,7 @@
 /*======================================================================= 
   PHP-Nuke Titanium | Nuke-Evolution Xtreme : PHP-Nuke Web Portal System
  =======================================================================*/
-
+use function PHP81_BC\strftime;
 /************************************************************************/
 /* PHP-NUKE: Web Portal System                                          */
 /* ===========================                                          */
@@ -77,9 +77,18 @@ function weblinks_parentlink($parentid,$title)
     
 	$parentid = intval($parentid);
     $row = $db->sql_fetchrow($db->sql_query("SELECT `cid`, `title`, `parentid` FROM ".$prefix."_links_categories WHERE cid='$parentid'"));
-    $cid = intval($row['cid']);
-    $ptitle = stripslashes(check_html($row['title'], "nohtml"));
-    $pparentid = intval($row['parentid']);
+    
+	if(isset($row['cid']))
+	$cid = intval($row['cid']);
+    
+	if(isset($row['title']))
+	$ptitle = stripslashes((string) check_html($row['title'], "nohtml"));
+
+	if(isset($row['parentid']))
+	$pparentid = intval($row['parentid']);
+    else
+	$pparentid = 0;
+	
 	if (!empty($ptitle)) 
 	$title="<a href=modules.php?name=$module_name&amp;l_op=viewlink&amp;cid=$cid>$ptitle</a>/".$title;
 	if ($pparentid!=0) 
@@ -880,7 +889,8 @@ function RandomLink()
     if ($numrows == 1) {
     $random = 1;
     } else {
-    srand((double)microtime()*1000000);
+  //srand((double)microtime()*1000000); <- this horse shit is dead and gone
+    mt_srand((double)microtime()*1_000_000); # <- this is the new horse shit
     $random = rand(1,$numrows);
         $random = intval($random);
     }
@@ -898,15 +908,22 @@ function viewlink($cid, $min, $orderby, $show)
 
     if (empty($show))
     $show = '';
-    if (!empty($orderby)) 
+    
+	if (!empty($orderby)) 
     $orderby = htmlspecialchars($orderby);
     
     include_once(NUKE_BASE_DIR.'header.php');
 
-    if (!isset($min)) 
+    if(empty($min))
+	$min = '';
+	
+    if(!isset($min)) 
 	$min=0;
     
-	if (!isset($max)) 
+	if(empty($max))
+	$max = '';
+	
+	if(!isset($max)) 
 	$max=$min+$perpage;
     
 	if(!empty($orderby)) 
@@ -914,7 +931,7 @@ function viewlink($cid, $min, $orderby, $show)
 	else 
     $orderby = "title ASC";
     
-	if (!empty($show)) 
+	if(!empty($show)) 
     $perpage = $show;
 	else 
     $show=$perpage;
@@ -950,7 +967,7 @@ function viewlink($cid, $min, $orderby, $show)
     echo "<td><span class=\"option\"><strong><big><i class=\"bi bi-arrow-return-right\"></i></big></strong> <a href=\"modules.php?name=Web_Links&amp;l_op=viewlink&amp;cid=$cid2\"><strong>$title2</strong></a></span>";
     categorynewlinkgraphic($cid2);
     
-	if ($description2) 
+	if (isset($description2)) 
     echo "<span class=\"content\">$cdescription2</span><br />";
     else 
     echo "<br />";
@@ -1152,7 +1169,7 @@ function newlinkgraphic($datetime, $time)
 
     setlocale (LC_TIME, $locale);
     preg_match ("/([0-9]{4})\-([0-9]{1,2})\-([0-9]{1,2}) ([0-9]{1,2})\:([0-9]{1,2})\:([0-9]{1,2})/", $time, $datetime);
-    $datetime = strftime(""._LINKSDATESTRING."", mktime($datetime[4],$datetime[5],$datetime[6],$datetime[2],$datetime[3],$datetime[1]));
+    $datetime = strftime(""._LINKSDATESTRING."", mktime(isset($datetime[4]),isset($datetime[5]),isset($datetime[6]),isset($datetime[2]),isset($datetime[3]),isset($datetime[1])));
     $datetime = ucfirst($datetime);
     $startdate = time();
     $count = 0;
@@ -1175,15 +1192,18 @@ function newlinkgraphic($datetime, $time)
 function categorynewlinkgraphic($cat) 
 {
     global $prefix, $db, $module_name, $locale;
-    $cat = intval(trim($cat));
-    $row = $db->sql_fetchrow($db->sql_query("SELECT date from ".$prefix."_links_links where cid='$cat' order by date desc limit 1"));
-    $time = $row['date'];
-
+    $cat = intval(trim((string) $cat));
+    $row = $db->sql_fetchrow($db->sql_query("SELECT `date` FROM ".$prefix."_links_links WHERE cid='$cat' ORDER by date desc limit 1"));
+    
+	if(!isset($row['date']))
+	$row['date'] = '';
+	
+	$time = $row['date'];
+    
     echo "&nbsp;";
-
     setlocale (LC_TIME, $locale);
-    preg_match ("/([0-9]{4})\-([0-9]{1,2})\-([0-9]{1,2}) ([0-9]{1,2})\:([0-9]{1,2})\:([0-9]{1,2})/", $time, $datetime);
-    $datetime = strftime(""._LINKSDATESTRING."", mktime($datetime[4],$datetime[5],$datetime[6],$datetime[2],$datetime[3],$datetime[1]));
+    preg_match ("/([0-9]{4})\-([0-9]{1,2})\-([0-9]{1,2}) ([0-9]{1,2})\:([0-9]{1,2})\:([0-9]{1,2})/", (string) $time, $datetime);
+    $datetime = strftime(""._LINKSDATESTRING."", mktime(isset($datetime[4]),isset($datetime[5]),isset($datetime[6]),isset($datetime[2]),isset($datetime[3]),isset($datetime[1])));
     $datetime = ucfirst($datetime);
     $startdate = time();
     $count = 0;

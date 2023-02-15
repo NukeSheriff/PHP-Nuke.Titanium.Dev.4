@@ -13,7 +13,7 @@
  *
  ***************************************************************************/
 
-define('IN_PHPBB', 1);
+if (!defined('IN_PHPBB')) define('IN_PHPBB', true);
 
 if( !empty($setmodules) )
 {
@@ -176,8 +176,8 @@ if ( $mode == 'editcreate')
 
             $max_order = $row['max_order'];
             $next_order = $max_order + 10;
-
-            $sql = "INSERT INTO " . ARCADE_CATEGORIES_TABLE . " ( arcade_cattitle, arcade_nbelmt, arcade_catorder )
+            
+			$sql = "INSERT INTO " . ARCADE_CATEGORIES_TABLE . " ( arcade_cattitle, arcade_nbelmt, arcade_catorder )
                     VALUES ('" . str_replace("\'","''",$arcade_cattitle) . "', 0, $next_order)" ;
             if( !$db->sql_query($sql) )
             {
@@ -362,8 +362,12 @@ while( $row = $db->sql_fetchrow($result) )
 $nbcat = sizeof($liste_cat);
 for ( $i = 0 ; $i < $nbcat ; $i++ )
 {
-  $td_row = ( $td_row == 'row1' ) ? 'row2' : 'row1';
+   
+   if(!isset($td_row))
+   $td_row = '';
 
+   $td_row = ( $td_row == 'row1' ) ? 'row2' : 'row1';
+   
    $template->assign_block_vars('arcade_catrow', array(
       'TD_ROW' => $td_row,
       'L_UP' => ( $i > 0) ? $lang['Up_arcade_cat'] . '<br />' : '',

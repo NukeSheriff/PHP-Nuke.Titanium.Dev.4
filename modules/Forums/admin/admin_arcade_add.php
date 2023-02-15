@@ -13,7 +13,7 @@
  *
  ***************************************************************************/
 
-define('IN_PHPBB', 1);
+if (!defined('IN_PHPBB')) define('IN_PHPBB', true);
 
 if( !empty($setmodules) )
 {
@@ -117,7 +117,10 @@ if( !($result = $db->sql_query($sql)) )
 
 while ( $row = $db->sql_fetchrow($result))
 {
-    $cats = $cats . "<option value='" . $row['arcade_catid'] . "' >" . $row['arcade_cattitle'] . "</option>\n";
+    if(!isset($cats))
+	$cats = ''; 
+	
+	$cats = $cats . "<option value='" . $row['arcade_catid'] . "' >" . $row['arcade_cattitle'] . "</option>\n";
 }
 
 

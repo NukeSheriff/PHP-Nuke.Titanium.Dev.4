@@ -60,7 +60,7 @@ if (!defined('MODULE_FILE')) {
 
 
 
-if ($popup != "1"){
+if (!isset($popup)){
 
 	$module_name = basename(dirname(__FILE__));
 
@@ -145,6 +145,11 @@ $orig_word = $replacement_word = array();
 //
 $topic_type = ( !empty($HTTP_POST_VARS['topictype']) ) ? intval($HTTP_POST_VARS['topictype']) : POST_NORMAL;
 $topic_type = ( in_array($topic_type, array(POST_NORMAL, POST_STICKY, POST_ANNOUNCE, POST_GLOBAL_ANNOUNCE)) ) ? $topic_type : POST_NORMAL;
+
+if(!isset($parent_forum))
+$parent_forum = '';
+else
+$parent_forum = 1;
 
 //
 // If the mode is set to topic review then output
@@ -313,81 +318,41 @@ switch ( $mode )
  [ Mod:    Thank You Mod                       v1.1.8 ]
 
  ******************************************************/
-
 		case 'thank':
-
 /*****[END]********************************************
-
  [ Mod:    Thank You Mod                       v1.1.8 ]
-
  ******************************************************/
-
 		case 'reply':
-
 		case 'vote':
-
 				if ( empty( $topic_id) )
-
 				{
-
 						message_die(GENERAL_MESSAGE, $lang['No_topic_id']);
-
 				}
-
-
-
 				$sql = "SELECT f.*, t.topic_status, t.topic_title, t.topic_type
-
 						FROM (" . FORUMS_TABLE . " f, " . TOPICS_TABLE . " t)
-
 						WHERE t.topic_id = '$topic_id'
-
-								AND f.forum_id = t.forum_id";
-
+						AND f.forum_id = t.forum_id";
 				break;
-
-
-
 		case 'quote':
-
 		case 'editpost':
-
 		case 'delete':
-
 		case 'poll_delete':
-
 				if ( empty($post_id) )
-
 				{
-
 						message_die(GENERAL_MESSAGE, $lang['No_post_id']);
-
 				}	
-
 /*****[BEGIN]******************************************
-
  [ Mod:     Post Icons                         v1.0.1 ]
-
  ******************************************************/			
-
 				$select_sql = ( !$submit ) ? ", t.topic_title, t.topic_icon, p.enable_bbcode, p.enable_html, p.enable_smilies, p.enable_sig, p.post_username, p.post_time, pt.post_subject, p.post_icon, pt.post_text, pt.bbcode_uid, u.username, u.user_id, u.user_sig" : '';
-
 /*****[END]********************************************
-
  [ Mod:     Post Icons                         v1.0.1 ]
-
  ******************************************************/
-
 				$from_sql = ( !$submit ) ? ", " . POSTS_TEXT_TABLE . " pt, " . USERS_TABLE . " u" : '';
-
 				$where_sql = ( !$submit ) ? "AND pt.post_id = p.post_id AND u.user_id = p.poster_id" : '';
-
 /*****[BEGIN]******************************************
-
  [ Mod:      At a Glance Submit                v1.0.0 ]
-
  ******************************************************/
-
 				$sql = "SELECT f.*, t.topic_id, t.topic_status, t.topic_glance_priority, t.topic_type, t.topic_first_post_id, t.topic_last_post_id, t.topic_vote, p.post_id, p.poster_id" . $select_sql . "
 
 						FROM (" . POSTS_TABLE . " p, " . TOPICS_TABLE . " t, " . FORUMS_TABLE . " f" . $from_sql . ")
@@ -419,83 +384,43 @@ switch ( $mode )
 
 
 if ( ($result = $db->sql_query($sql)) && ($post_info = $db->sql_fetchrow($result)) )
-
 {
-
 		$db->sql_freeresult($result);
-
-
-
 		$forum_id = $post_info['forum_id'];
-
 		$forum_name = $post_info['forum_name'];
-
 /*****[BEGIN]******************************************
-
  [ Mod:     View Topic Name While Posting      v1.0.5 ]
-
  [ Mod:     Smilies in Topic Titles            v1.0.0 ]
-
  [ Mod:     Smilies in Topic Titles Toggle     v1.0.0 ]
-
  ******************************************************/
-
+		if(!isset($post_info['topic_title']))
+        $post_info['topic_title'] = '';
 		$topic_title = ($board_config['smilies_in_titles']) ? smilies_pass($post_info['topic_title']) : $post_info['topic_title'];
-
 /*****[END]********************************************
-
  [ Mod:     Smilies in Topic Titles Toggle     v1.0.0 ]
-
  [ Mod:     Smilies in Topic Titles            v1.0.0 ]
-
  [ Mod:     View Topic Name While Posting      v1.0.5 ]
-
  ******************************************************/
-
-
-
 		$is_auth = auth(AUTH_ALL, $forum_id, $userdata, $post_info);
-
-
-
 /*****[BEGIN]******************************************
-
  [ Base:    Lock/Unlock in Posting Body        v1.0.1 ]
-
  ******************************************************/
-
 		$lock = ( isset($HTTP_POST_VARS['lock']) ) ? TRUE : FALSE;
-
 		$unlock = ( isset($HTTP_POST_VARS['unlock']) ) ? TRUE : FALSE;
 
-
-
 		if ( ($submit || $confirm) && ($lock || $unlock) && ($is_auth['auth_mod']) && ($mode != 'newtopic') && (!$refresh) )
-
 		{
-
 			$t_id = ( !isset($post_info['topic_id']) ) ? $topic_id : $post_info['topic_id'];
 
-
-
 			if ( $unlock )
-
 			{
-
 /*****[BEGIN]******************************************
-
  [ Mod:     Log Moderator Actions              v1.1.6 ]
-
  ******************************************************/
-
 				log_action($lang['Unlock'], '', $t_id, $userdata['user_id'], '', '');
-
 /*****[END]********************************************
-
  [ Mod:     Log Moderator Actions              v1.1.6 ]
-
  ******************************************************/
-
 				$sql = "UPDATE " . TOPICS_TABLE . "
 
 				SET topic_status = " . TOPIC_UNLOCKED . "
@@ -503,27 +428,16 @@ if ( ($result = $db->sql_query($sql)) && ($post_info = $db->sql_fetchrow($result
 				WHERE topic_id = " . $t_id . "
 
 				AND topic_moved_id = 0";
-
 			}
-
 			else if ($lock)
-
 			{
-
 /*****[BEGIN]******************************************
-
  [ Mod:     Log Moderator Actions              v1.1.6 ]
-
  ******************************************************/
-
 				log_action($lang['Lock'], '', $t_id, $userdata['user_id'], '', '');
-
 /*****[END]********************************************
-
  [ Mod:     Log Moderator Actions              v1.1.6 ]
-
  ******************************************************/
-
 				$sql = "UPDATE " . TOPICS_TABLE . "
 
 				SET topic_status = " . TOPIC_LOCKED . "
@@ -534,92 +448,50 @@ if ( ($result = $db->sql_query($sql)) && ($post_info = $db->sql_fetchrow($result
 
 			}
 
-
-
 			if ($lock || $unlock)
-
 			{
-
 				if ( !($result = $db->sql_query($sql)) )
-
 				{
-
 					message_die(GENERAL_ERROR, 'Could not update topics table', '', __LINE__, __FILE__, $sql);
-
 				}
-
 			}
-
 		}
-
 /*****[END]********************************************
-
  [ Base:    Lock/Unlock in Posting Body        v1.0.1 ]
-
  ******************************************************/
-
-
-
 		if ( $post_info['forum_status'] == FORUM_LOCKED && !$is_auth['auth_mod'])
-
 		{
-
 		   message_die(GENERAL_MESSAGE, $lang['Forum_locked']);
-
 		}
-
 		else if ( $mode != 'newtopic' && $mode != 'thank' && $post_info['topic_status'] == TOPIC_LOCKED && !$is_auth['auth_mod'])
-
 		{
-
 		   message_die(GENERAL_MESSAGE, $lang['Topic_locked']);
-
 		}
 
-
+		$is_auth = auth(AUTH_ALL, $forum_id, $userdata, $post_info);
 
 		if ( $mode == 'editpost' || $mode == 'delete' || $mode == 'poll_delete' )
-
 		{
 
+                if(!isset($post_info['post_icon']))
+                $post_info['post_icon'] = '';
+
+                if(!isset($post_info['poster_id']))
+                $post_info['poster_id'] = '';
+
 				$topic_id = $post_info['topic_id'];
-
-
-
 				$post_data['poster_post'] = ( $post_info['poster_id'] == $userdata['user_id'] ) ? true : false;
-
 				$post_data['first_post'] = ( $post_info['topic_first_post_id'] == $post_id ) ? true : false;
-
 				$post_data['last_post'] = ( $post_info['topic_last_post_id'] == $post_id ) ? true : false;
-
 				$post_data['last_topic'] = ( $post_info['forum_last_post_id'] == $post_id ) ? true : false;
-
 				$post_data['has_poll'] = ( $post_info['topic_vote'] ) ? true : false;
-
 				$post_data['topic_type'] = $post_info['topic_type'];
 
-/*****[BEGIN]******************************************
-
- [ Mod:     Post Icons                         v1.0.1 ]
-
- ******************************************************/
-
 				$post_data['post_icon'] = $post_info['post_icon'];
-
-/*****[END]********************************************
-
- [ Mod:     Post Icons                         v1.0.1 ]
-
- ******************************************************/
-
 				$post_data['poster_id'] = $post_info['poster_id'];
 
-
-
 				if ( $post_data['first_post'] && $post_data['has_poll'] )
-
 				{
-
 						$sql = "SELECT *
 
 								FROM (" . VOTE_DESC_TABLE . " vd, " . VOTE_RESULTS_TABLE . " vr)
@@ -631,134 +503,74 @@ if ( ($result = $db->sql_query($sql)) && ($post_info = $db->sql_fetchrow($result
 								ORDER BY vr.vote_option_id";
 
 						if ( !($result = $db->sql_query($sql)) )
-
 						{
-
 								message_die(GENERAL_ERROR, 'Could not obtain vote data for this topic', '', __LINE__, __FILE__, $sql);
-
 						}
-
-
 
 						$poll_options = array();
 
 						$poll_results_sum = 0;
 
 						if ( $row = $db->sql_fetchrow($result) )
-
 						{
-
 								$poll_title = $row['vote_text'];
-
 								$poll_id = $row['vote_id'];
-
 								$poll_length = $row['vote_length'] / 86400;
-
 /*****[BEGIN]******************************************
-
  [ Mod:     Must first vote to see Results     v1.0.0 ]
-
  ******************************************************/
-
 								 $poll_view_toggle = $row['poll_view_toggle'];
-
 /*****[END]********************************************
-
  [ Mod:     Must first vote to see Results     v1.0.0 ]
-
  ******************************************************/
-
 								do
-
 								{
-
 										$poll_options[$row['vote_option_id']] = $row['vote_option_text'];
-
 										$poll_results_sum += $row['vote_result'];
-
 								}
-
 								while ( $row = $db->sql_fetchrow($result) );
-
 						}
 
 						$db->sql_freeresult($result);
 
-
-
 						$post_data['edit_poll'] = ( ( !$poll_results_sum || $is_auth['auth_mod'] ) && $post_data['first_post'] ) ? true : 0;
-
 				}
-
 				else
-
 				{
-
 						$post_data['edit_poll'] = ($post_data['first_post'] && $is_auth['auth_pollcreate']) ? true : false;
-
 				}
-
-
-
 				//
-
 				// Can this user edit/delete the post/poll?
-
 				//
-
-				if ( $post_info['poster_id'] != $userdata['user_id'] && !$is_auth['auth_mod'] )
-
+				global $userdata;
+				
+				if ( $post_info['poster_id'] != $userdata['user_id'] && !$is_auth['auth_mod'] ) //HERE
 				{
-
 						$message = ( $delete || $mode == 'delete' ) ? $lang['Delete_own_posts'] : $lang['Edit_own_posts'];
-
 						$message .= '<br /><br />' . sprintf($lang['Click_return_topic'], '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id") . '">', '</a>');
-
-
-
 						message_die(GENERAL_MESSAGE, $message);
 
 				}
-
 				else if ( !$post_data['last_post'] && !$is_auth['auth_mod'] && ( $mode == 'delete' || $delete ) )
-
 				{
-
 						message_die(GENERAL_MESSAGE, $lang['Cannot_delete_replied']);
-
 				}
-
 				else if ( !$post_data['edit_poll'] && !$is_auth['auth_mod'] && ( $mode == 'poll_delete' || $poll_delete ) )
-
 				{
-
 						message_die(GENERAL_MESSAGE, $lang['Cannot_delete_poll']);
-
 				}
-
 		}
-
 		else
-
 		{
-
 				if ( $mode == 'quote' )
-
 				{
-
 						$topic_id = $post_info['topic_id'];
-
 				}
 
 		if ( $mode == 'newtopic' )
-
 		{
-
 			$post_data['topic_type'] = POST_NORMAL;
-
 		}
-
-
 
 				$post_data['first_post'] = ( $mode == 'newtopic' ) ? true : 0;
 
@@ -771,101 +583,55 @@ if ( ($result = $db->sql_query($sql)) && ($post_info = $db->sql_fetchrow($result
 		}
 
 	if ( $mode == 'poll_delete' && !isset($poll_id) )
-
 	{
-
 		message_die(GENERAL_MESSAGE, $lang['No_such_post']);
-
 	}
-
 		/*--FNA #1--*/
-
 }
-
 else
-
 {
-
 		message_die(GENERAL_MESSAGE, $lang['No_such_post']);
 
 }
 
-
-
 //
-
 // The user is not authed, if they're not logged in then redirect
-
 // them, else show them an error message
-
 //
-
 if ( !$is_auth[$is_auth_type] )
-
 {
-
 		if ( $userdata['session_logged_in'] )
-
 		{
-
 				message_die(GENERAL_MESSAGE, sprintf($lang['Sorry_' . $is_auth_type], $is_auth[$is_auth_type . "_type"]));
-
 		}
 
-
-
 		switch( $mode )
-
 		{
-
 				case 'newtopic':
-
 						$redirect = "mode=newtopic&" . POST_FORUM_URL . "=" . $forum_id;
-
 						break;
-
 /*****[BEGIN]******************************************
-
  [ Mod:    Thank You Mod                       v1.1.8 ]
-
  ******************************************************/
-
 				case 'thank':
-
 /*****[END]********************************************
-
  [ Mod:    Thank You Mod                       v1.1.8 ]
-
  ******************************************************/
-
 				case 'reply':
-
 				case 'topicreview':
-
 						$redirect = "mode=reply&" . POST_TOPIC_URL . "=" . $topic_id;
-
 						break;
 
 				case 'quote':
-
 				case 'editpost':
-
 						$redirect = "mode=quote&" . POST_POST_URL ."=" . $post_id;
-
 						break;
-
 		}
 
-
-
 		// not needed anymore due to function redirect()
-
-//$header_location = ( @preg_match('/Microsoft|WebSTAR|Xitami/', $_SERVER['SERVER_SOFTWARE']) ) ? 'Refresh: 0; URL=' : 'Location: ';
-
+        // $header_location = ( @preg_match('/Microsoft|WebSTAR|Xitami/', $_SERVER['SERVER_SOFTWARE']) ) ? 'Refresh: 0; URL=' : 'Location: ';
 		redirect(append_sid("login.$phpEx?redirect=posting.$phpEx&" . $redirect, true));
-
 		exit;
-
 }
 
 /*****[BEGIN]******************************************
@@ -874,11 +640,12 @@ if ( !$is_auth[$is_auth_type] )
 if( !$is_auth['auth_mod'] && $userdata['user_level'] != ADMIN )
 {
 	$redirect = str_replace("&amp;", "&", preg_replace('#.*?([a-z]+?\.' . $phpEx . '.*?)$#i', '\1', htmlspecialchars($HTTP_SERVER_VARS['REQUEST_URI'])));
-	if( $HTTP_POST_VARS['cancel'] )
+	
+	if(isset($HTTP_POST_VARS['cancel']))
 	{
 		redirect(append_sid("index.$phpEx"));
 	}
-	else if( $HTTP_POST_VARS['pass_login'] )
+	elseif(isset($HTTP_POST_VARS['pass_login']))
 	{
 		if( $post_info['topic_password'] != '' )
 		{
@@ -890,7 +657,8 @@ if( !$is_auth['auth_mod'] && $userdata['user_level'] != ADMIN )
 		}
 	}
 
-	if( $post_info['topic_password'] != '' && $mode != 'newtopic' )
+    if(isset($post_info['topic_password']) && $mode != 'newtopic')
+	//if($post_info['topic_password'] != '' && $mode != 'newtopic' )
 	{
 		$passdata = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_tpass']) ) ? unserialize(stripslashes($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_tpass'])) : '';
 		if( $passdata[$topic_id] != md5($post_info['topic_password']) )
@@ -916,75 +684,40 @@ if( !$is_auth['auth_mod'] && $userdata['user_level'] != ADMIN )
 //
 
 if ( !$board_config['allow_html'] )
-
 {
-
 		$html_on = 0;
-
 }
-
 else
-
 {
-
 		$html_on = ( $submit || $refresh ) ? ( ( !empty($HTTP_POST_VARS['disable_html']) ) ? 0 : TRUE ) : ( ( $userdata['user_id'] == ANONYMOUS ) ? $board_config['allow_html'] : $userdata['user_allowhtml'] );
-
 }
-
-
 
 if ( !$board_config['allow_bbcode'] )
-
 {
-
 		$bbcode_on = 0;
-
 }
-
 else
-
 {
-
 		$bbcode_on = ( $submit || $refresh ) ? ( ( !empty($HTTP_POST_VARS['disable_bbcode']) ) ? 0 : TRUE ) : ( ( $userdata['user_id'] == ANONYMOUS ) ? $board_config['allow_bbcode'] : $userdata['user_allowbbcode'] );
-
 }
-
-
 
 if ( !$board_config['allow_smilies'] )
-
 {
-
 		$smilies_on = 0;
-
 }
-
 else
-
 {
-
 		$smilies_on = ( $submit || $refresh ) ? ( ( !empty($HTTP_POST_VARS['disable_smilies']) ) ? 0 : TRUE ) : ( ( $userdata['user_id'] == ANONYMOUS ) ? $board_config['allow_smilies'] : $userdata['user_allowsmile'] );
-
 }
-
-
 
 if ( ($submit || $refresh) && $is_auth['auth_read'])
-
 {
-
 		$notify_user = ( !empty($HTTP_POST_VARS['notify']) ) ? TRUE : 0;
-
 }
-
 else
-
 {
-
 		if ( $mode != 'newtopic' && $userdata['session_logged_in'] && $is_auth['auth_read'] )
-
 		{
-
 				$sql = "SELECT topic_id
 
 						FROM " . TOPICS_WATCH_TABLE . "
@@ -994,96 +727,52 @@ else
 								AND user_id = " . $userdata['user_id'];
 
 				if ( !($result = $db->sql_query($sql)) )
-
 				{
-
 						message_die(GENERAL_ERROR, 'Could not obtain topic watch information', '', __LINE__, __FILE__, $sql);
-
 				}
-
-
 
 				$notify_user = ( $db->sql_fetchrow($result) ) ? TRUE : $userdata['user_notify'];
 
 		$db->sql_freeresult($result);
 
 		}
-
 		else
-
 		{
-
 				$notify_user = ( $userdata['session_logged_in'] && $is_auth['auth_read'] ) ? $userdata['user_notify'] : 0;
-
 		}
-
 }
-
-
 
 $attach_sig = ( $submit || $refresh ) ? ( ( !empty($HTTP_POST_VARS['attach_sig']) ) ? TRUE : 0 ) : ( ( $userdata['user_id'] == ANONYMOUS ) ? 0 : $userdata['user_attachsig'] );
 
-
-
 /*****[BEGIN]******************************************
-
  [ Mod:    Attachment Mod                      v2.4.1 ]
-
  ******************************************************/
-
 execute_posting_attachment_handling();
-
 /*****[END]********************************************
-
  [ Mod:    Attachment Mod                      v2.4.1 ]
-
  ******************************************************/
-
-
 
 // --------------------
-
 //  What shall we do?
-
 //
-
-
 
 /*--FNA #2--*/
 
-
-
 if ( ( $delete || $poll_delete || $mode == 'delete' ) && !$confirm )
-
 {
 
 		//
-
 		// Confirm deletion
-
 		//
-
 		$s_hidden_fields = '<input type="hidden" name="' . POST_POST_URL . '" value="' . $post_id . '" />';
-
 		$s_hidden_fields .= ( $delete || $mode == "delete" ) ? '<input type="hidden" name="mode" value="delete" />' : '<input type="hidden" name="mode" value="poll_delete" />';
-
 		$s_hidden_fields .= '<input type="hidden" name="sid" value="' . $userdata['session_id'] . '" />';
-
-
-
 		$l_confirm = ( $delete || $mode == 'delete' ) ? $lang['Confirm_delete'] : $lang['Confirm_delete_poll'];
-
-
-
 		//
-
 		// Output confirmation page
-
 		//
 
 		include("includes/page_header.php");
-
-
 
 		$template->set_filenames(array(
 
@@ -1091,44 +780,21 @@ if ( ( $delete || $poll_delete || $mode == 'delete' ) && !$confirm )
 
 		);
 
-
-
 		$template->assign_vars(array(
-
 				'MESSAGE_TITLE' => $lang['Information'],
-
 				'MESSAGE_TEXT' => $l_confirm,
-
-
-
 				'L_YES' => $lang['Yes'],
-
 				'L_NO' => $lang['No'],
-
-
-
 				'S_CONFIRM_ACTION' => append_sid("posting.$phpEx"),
-
 				'S_HIDDEN_FIELDS' => $s_hidden_fields)
-
 		);
-
-
-
 		$template->pparse('confirm_body');
-
-
-
 		include("includes/page_tail.php");
-
 }
 
 /*****[BEGIN]******************************************
-
  [ Mod:    Thank You Mod                       v1.1.8 ]
-
  ******************************************************/
-
 else if ( $mode == 'thank' ) 
 
 {
@@ -1630,25 +1296,17 @@ else if ( $submit || $confirm )
 
 
 						if ( $error_msg == '' )
-
 						{
-
 /*****[BEGIN]******************************************
-
  [ Mod:     Global Announcements               v1.2.8 ]
-
  ******************************************************/
-
-								$topic_type = ( $topic_type != $post_data['topic_type'] && !$is_auth['auth_sticky'] && !$is_auth['auth_announce']  && !$is_auth['auth_globalannounce']) ? $post_data['topic_type'] : $topic_type;
-
+                          if(!isset($post_data['topic_type']))
+                          $post_data['topic_type'] = '';
+						
+						$topic_type = ( $topic_type != $post_data['topic_type'] && !$is_auth['auth_sticky'] && !$is_auth['auth_announce']  && !$is_auth['auth_globalannounce']) ? $post_data['topic_type'] : $topic_type;
 /*****[END]********************************************
-
  [ Mod:     Global Announcements               v1.2.8 ]
-
  ******************************************************/
-
-
-
 								/*--FNA REPLACE 2--*/
 
 								submit_post($mode, $post_data, $return_message, $return_meta, $forum_id, $topic_id, $post_id, $poll_id, $topic_type, $bbcode_on, $html_on, $smilies_on, $attach_sig, $bbcode_uid, str_replace("\'", "''", $username), str_replace("\'", "''", $subject), str_replace("\'", "''", $message), str_replace("\'", "''", $poll_title), $poll_options, $poll_length, $poll_view_toggle, $post_icon);
@@ -1854,7 +1512,8 @@ if( $refresh || isset($HTTP_POST_VARS['del_poll_option']) || $error_msg != '' )
 		$poll_options = array();
 		if ( !empty($HTTP_POST_VARS['poll_option_text']) )
 		{
-				while( list($option_id, $option_text) = @each($HTTP_POST_VARS['poll_option_text']) )
+				//while( list($option_id, $option_text) = each($HTTP_POST_VARS['poll_option_text']) )
+				foreach ($HTTP_POST_VARS['poll_option_text'] as $option_id => $option_text)
 				{
 						if( isset($HTTP_POST_VARS['del_poll_option'][$option_id]) )
 						{
@@ -1878,8 +1537,11 @@ if( $refresh || isset($HTTP_POST_VARS['del_poll_option']) || $error_msg != '' )
 		}
 		else if ( $mode == 'editpost' )
 		{
-				$user_sig = ( $post_info['user_sig'] != '' && $board_config['allow_sig'] ) ? $post_info['user_sig'] : '';
-				$userdata['user_sig_bbcode_uid'] = $post_info['user_sig_bbcode_uid'];
+			if(!isset($post_info['user_sig_bbcode_uid']))
+            $post_info['user_sig_bbcode_uid'] = '';
+			
+			$user_sig = ( $post_info['user_sig'] != '' && $board_config['allow_sig'] ) ? $post_info['user_sig'] : '';
+			$userdata['user_sig_bbcode_uid'] = $post_info['user_sig_bbcode_uid'];
 		}
 
 		if( $preview )
@@ -2097,6 +1759,10 @@ FROM " . POSTS_TABLE . " p
 WHERE p.topic_id = $topic_id
 AND p.poster_id = " . $userdata['user_id'];
 $resultat = $db->sql_query($sql);
+
+if(!isset($message))
+$message = '';
+
 if(!$db->sql_numrows($resultat)) {$message = hide_in_quote($message);}
 				}
 /*****[END]********************************************
@@ -2275,6 +1941,9 @@ if ( $mode == 'editpost' && ( ( $is_auth['auth_delete'] && $post_data['last_post
  ******************************************************/
 if ( ( $mode == 'editpost' || $mode == 'reply' || $mode == 'quote' || $mode == 'newtopic' ) && ( $is_auth['auth_mod'] ) )
 {
+	if(!isset($post_info['topic_status']))
+    $post_info['topic_status'] = '';
+
 	if ( $post_info['topic_status'] == TOPIC_LOCKED )
 	{
 		$template->assign_block_vars('switch_unlock_topic', array());
@@ -2301,10 +1970,17 @@ if ( ( $mode == 'editpost' || $mode == 'reply' || $mode == 'quote' || $mode == '
 /*****[BEGIN]******************************************
  [ Mod:      At a Glance Cement                v1.0.0 ]
  ******************************************************/
- if ( ( $mode == 'newtopic' || ($mode == 'editpost' && $post_data['first_post'])) && ( $is_auth['auth_mod'] ) ) {
-	 if ($post_info['topic_glance_priority']) {
+ if(($mode == 'newtopic' || ($mode == 'editpost' && $post_data['first_post'])) && ($is_auth['auth_mod'])) {
+	 
+	 if(!isset($post_info['topic_glance_priority']))
+     $post_info['topic_glance_priority'] = '';
+	 
+	 if($post_info['topic_glance_priority']) 
+	 {
 		 $checked = 'checked="checked"';
-	 } else if ($HTTP_POST_VARS['topic_glance_priority']){
+	 } 
+	 elseif(isset($HTTP_POST_VARS['topic_glance_priority']))
+	 {
 		 $checked = 'checked="checked"';
 	 } else {
 		 $checked = '';
@@ -2448,7 +2124,7 @@ if( $parent_id )
 		if( $all_forums[$i]['forum_id'] == $parent_id )
 		{
 			$template->assign_vars(array(
-				'PARENT_FORUM'			=> 1,
+		        'PARENT_FORUM' => $parent_forum,
 				'U_VIEW_PARENT_FORUM'	=> append_sid("viewforum.$phpEx?" . POST_FORUM_URL .'=' . $all_forums[$i]['forum_id']),
 				'PARENT_FORUM_NAME'		=> $all_forums[$i]['forum_name'],
 				));
@@ -2460,6 +2136,7 @@ if( $parent_id )
  ******************************************************/
 
 $template->assign_vars(array(
+        'PARENT_FORUM' => $parent_forum,
 		'FORUM_NAME' => $forum_name,
 /*****[BEGIN]******************************************
  [ Mod:     View Topic Name While Posting      v1.0.5 ]
@@ -2501,6 +2178,22 @@ $template->assign_block_vars('switch_not_privmsg.reply_mode', array());
 //
 // Output the data to the template
 //
+if(!isset($username))
+$username = '';
+if(!isset($show_topic_select))
+$show_topic_select = '';
+if(!isset($show_sticky))
+$show_sticky = '';
+if(!isset($show_announce))
+$show_announce = '';
+if(!isset($show_global_announce))
+$show_global_announce = '';
+
+if(!isset($post_data['topic_type']))
+$post_data['topic_type'] = '';
+
+
+
 $template->assign_vars(array(
 		'USERNAME' => $username,
 		'SUBJECT' => $subject,
@@ -2703,6 +2396,15 @@ endif;
 //
 // Poll entry switch/output
 //
+if(!isset($poll_title))
+$poll_title = '';
+
+if(!isset($poll_length))
+$poll_length = '';
+
+if(!isset($poll_view_toggle))
+$poll_view_toggle = '';
+
 if( ( $mode == 'newtopic' || ( $mode == 'editpost' && $post_data['edit_poll']) ) && $is_auth['auth_pollcreate'] )
 {
 		$template->assign_vars(array(
@@ -2744,7 +2446,8 @@ if( ( $mode == 'newtopic' || ( $mode == 'editpost' && $post_data['edit_poll']) )
 
 		if( !empty($poll_options) )
 		{
-				while( list($option_id, $option_text) = each($poll_options) )
+				//while( list($option_id, $option_text) = each($poll_options) )
+				foreach ($poll_options as $option_id => $option_text)
 				{
 						$template->assign_block_vars('poll_option_rows', array(
 								'POLL_OPTION' => str_replace('"', '&quot;', $option_text),

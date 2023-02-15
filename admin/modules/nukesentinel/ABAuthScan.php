@@ -19,24 +19,44 @@ if(is_god($admin)) {
   $importnamed = $exportnamed = '';
   $importadded = $exportadded = 0;
   $importad = $db->sql_query("SELECT `aid`, `name`, `pwd` FROM `".$prefix."_authors`");
-  while(list($a_aid, $a_name, $a_pwd) = $db->sql_fetchrow($importad)) {
+  
+  while(list($a_aid, $a_name, $a_pwd) = $db->sql_fetchrow($importad)) 
+  {
     $adminrow = $db->sql_numrows($db->sql_query("SELECT `aid` FROM `".$prefix."_nsnst_admins` WHERE `aid`='$a_aid'"));
-    if($adminrow == 0) {
+  
+    if($adminrow == 0) 
+	{
       $importadded++;
-      if($importnamed == '') { $importnamed = $a_aid; } else { $importnamed = $importnamed.', '.$a_aid; }
+    
+	  if($importnamed == '') 
+	  { 
+	    $importnamed = $a_aid; 
+	  } 
+	  else 
+	  { 
+	    $importnamed = $importnamed.', '.$a_aid; 
+	  }
       $makepass = "";
-      $strs = "abc2def3ghj4kmn5opq6rst7uvw8xyz9";
-      for($x=0; $x < 20; $x++) {
-        mt_srand ((double) microtime() * 1000000);
-        $str[$x] = substr($strs, mt_rand(0, strlen($strs)-1), 1);
-        $makepass = $makepass.$str[$x];
-      }
-      $xpassword_md5 = md5($makepass);
-      $xpassword_crypt = crypt($makepass);
-      if(!get_magic_quotes_runtime()) { $makepass = addslashes($makepass); }
+
+      $bytes = openssl_random_pseudo_bytes(8);
+      $makepass = bin2hex($bytes);
+
+	  $xpassword_md5 = md5($makepass);
+      $xpassword_crypt = $makepass;
+      $makepass = addslashes($makepass); 
+
       if(strtolower($a_name) == "god") { $is_god = 1; } else { $is_god = 0; }
-      $result = $db->sql_query("INSERT INTO `".$prefix."_nsnst_admins` (`aid`, `login`, `protected`, `password`, `password_md5`, `password_crypt`) VALUES ('$a_aid', '$a_aid', '$is_god', '$makepass', '$xpassword_md5', '$xpassword_crypt')");
-      $db->sql_query("OPTIMIZE TABLE ".$prefix."_nsnst_admins");
+
+      $result = $db->sql_query("INSERT INTO `".$prefix."_nsnst_admins` (`aid`, 
+	                                                                  `login`, 
+																  `protected`, 
+																   `password`, 
+															   `password_md5`, 
+															 `password_crypt`) 
+															 
+	  VALUES ('$a_aid', '$a_aid', '$is_god', '$makepass', '$xpassword_md5', '$xpassword_crypt')");
+      
+	  $db->sql_query("OPTIMIZE TABLE ".$prefix."_nsnst_admins");
       $aidrow = $db->sql_fetchrow($db->sql_query("SELECT * FROM `".$prefix."_nsnst_admins` WHERE `aid`='$a_aid' LIMIT 0,1"));
       $subject = _AB_ACCESSFOR." ".$nuke_config['sitename'];
       $message  = _AB_HTTPONLY."\n";
@@ -66,7 +86,7 @@ if(is_god($admin)) {
   authmenu();
   CloseMenu();
   CloseTable();
-  echo '<br />'."\n";
+
   OpenTable();
   echo '<center><strong>'._AB_SCANADMINSDONE.'</strong></center><br />'."\n";
   echo '<center><strong>'._AB_ADMINSADDED.':</strong> '.$importadded;

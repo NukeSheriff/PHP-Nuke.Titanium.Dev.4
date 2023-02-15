@@ -41,6 +41,9 @@ if ( ($ulevel < 1) OR ($uactive < 1) ) {
     unset($cookie);
 }
 
+if(!isset($_GET['name']))
+$_GET['name'] = '';
+
 if(isset($_GET['name']) && isset($_GET['file']) || isset($_GET['mode'])) {
     if ( ($_GET['name']=='Forums') && ($_GET['file']=='profile') && ($_GET['mode']=='register') ) redirect("modules.php?name=Your_Account&op=new_user");
 }
@@ -58,7 +61,9 @@ if (is_user()) {
 /*****[BEGIN]******************************************
  [ Base:    Caching System                     v3.0.0 ]
  ******************************************************/
-    if(($ya_config = $cache->load('ya_config', 'config')) === false) {
+    if(!($ya_config = $cache->load('ya_config', 'config'))) {
+	$configresult = [];
+	$ya_config = [];	
 /*****[END]********************************************
  [ Base:    Caching System                     v3.0.0 ]
  ******************************************************/
@@ -74,8 +79,8 @@ if (is_user()) {
 /*****[END]********************************************
  [ Base:    Caching System                     v3.0.0 ]
  ******************************************************/
-    }
-    if(isset($config)) $config = $ya_config;
+    }    
+	if(isset($config)) $config = $ya_config;
     $cookieinactivity    = $ya_config['cookieinactivity'];
     $cookiepath        = $ya_config['cookiepath'];
     $autosuspend        = $ya_config['autosuspend'];

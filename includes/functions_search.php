@@ -116,16 +116,16 @@ function add_search_words($mode, $post_id, $post_text, $post_title = '')
 {
         global $db, $phpbb_root_path, $board_config, $lang;
 
-        $stopword_array = @file($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . "/search_stopwords.txt");
-        $synonym_array = @file($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . "/search_synonyms.txt");
+        $stopword_array = file($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . "/search_stopwords.txt");
+        $synonym_array = file($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . "/search_synonyms.txt");
 
         $search_raw_words = array();
         $search_raw_words['text'] = split_words(clean_words('post', $post_text, $stopword_array, $synonym_array));
         $search_raw_words['title'] = split_words(clean_words('post', $post_title, $stopword_array, $synonym_array));
-        @set_time_limit(0);
+        set_time_limit(0);
         $word = array();
         $word_insert_sql = array();
-        while ( list($word_in, $search_matches) = @each($search_raw_words) )
+		foreach ($search_raw_words as $word_in => $search_matches)
         {
                 $word_insert_sql[$word_in] = '';
                 if ( !empty($search_matches) )
@@ -246,7 +246,7 @@ function add_search_words($mode, $post_id, $post_text, $post_title = '')
                 }
         }
 
-        while( list($word_in, $match_sql) = @each($word_insert_sql) )
+		foreach ($word_insert_sql as $word_in => $match_sql)
         {
                 $title_match = ( $word_in == 'title' ) ? 1 : 0;
 

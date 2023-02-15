@@ -15,7 +15,7 @@ if (!defined('NUKESENTINEL_ADMIN')) {
    die ('You can\'t access this file directly...');
 }
 
-if(!get_magic_quotes_runtime()) { $string = addslashes($string); }
+$string = addslashes($string); 
 $testnum1 = $db->sql_numrows($db->sql_query("SELECT * FROM `".$prefix."_nsnst_strings` WHERE `string`='".$string."' AND `sid`!='".$sid."'"));
 if($testnum1 > 0) {
   include_once(NUKE_BASE_DIR.'header.php');
@@ -26,7 +26,7 @@ if($testnum1 > 0) {
   stringmenu();
   CloseMenu();
   CloseTable();
-  echo '<br />'."\n";
+
   OpenTable();
   echo '<center><strong>'._AB_STRINGEXISTS.'</strong></center><br />'."\n";
   echo '<center><strong>'._GOBACK.'</strong></center><br />'."\n";
@@ -41,7 +41,7 @@ if($testnum1 > 0) {
   stringmenu();
   CloseMenu();
   CloseTable();
-  echo '<br />'."\n";
+
   OpenTable();
   echo '<center><strong>'._AB_STRINGEMPTY.'</strong></center><br />'."\n";
   echo '<center><strong>'._GOBACK.'</strong></center><br />'."\n";

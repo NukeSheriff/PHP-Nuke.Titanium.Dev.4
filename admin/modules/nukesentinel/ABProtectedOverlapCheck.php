@@ -31,7 +31,7 @@ if(!isset($min)) {
   protectedmenu();
   CloseMenu();
   CloseTable();
-  echo '<br />'."\n";
+
   OpenTable();
   echo _AB_PROTECTEDOVERLAPCHECK01.'<br />'."\n";
   echo _AB_PROTECTEDOVERLAPCHECK02.'<br />'."\n";
@@ -203,7 +203,7 @@ if(!isset($min)) {
     echo '</tr>'."\n";
     echo '</table>'."\n";
   } else {
-    echo '<script type="text/javascript"><!--'."\n";
+    echo '<script><!--'."\n";
     echo 'setTimeout(\'Redirect()\','.($pagedelay*1000).');'."\n";
     echo 'function Redirect()'."\n";
     echo '{'."\n";
@@ -227,7 +227,7 @@ if(!isset($min)) {
   protectedmenu();
   CloseMenu();
   CloseTable();
-  echo '<br />'."\n";
+
   OpenTable();
   echo '<center><strong>'._AB_PROTECTEDOVERLAPCHECK.' '._AB_COMPLETED.'</strong></center>'."\n";
   CloseTable();

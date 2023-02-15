@@ -88,9 +88,9 @@ if (isset($ips) && is_array($ips))
  [ Mod:    Admin IP Lock                       v2.1.0 ]
  ******************************************************/
 
-//need_delete('install.php');
-//need_delete('upgrade.php');
-//need_delete('install', true);
+need_delete('install.php');
+need_delete('upgrade.php');
+need_delete('install', true);
 
 if (isset($aid) && (preg_match("/[^a-zA-Z0-9_-]/", trim($aid)))){
     die('Begone');
@@ -102,6 +102,9 @@ if ((isset($aid)) && (isset($pwd)) && (isset($op)) && ($op == "login")){
 /*****[BEGIN]******************************************
  [ Mod:     Advanced Security Code Control     v1.0.0 ]
  ******************************************************/
+    if(!isset($_POST['g-recaptcha-response']))
+    $_POST['g-recaptcha-response'] = '';
+ 
     $gfxchk = array(1,5,6,7);
     if (!security_code_check($_POST['g-recaptcha-response'], $gfxchk)){
 /*****[END]********************************************
@@ -263,25 +266,41 @@ if (!isset($admincookie[4]) && $admintest){
 	exit;
 }
 
-if(!isset($op)):
+if (!isset($op))
+{
     $op = 'adminMain';
-elseif 
-    (($op == 'mod_authors' || 
-      $op == 'modifyadmin' || 
-	  $op == 'UpdateAuthor' || 
-	  $op == 'AddAuthor' || 
-	  $op == 'deladmin2' || 
-	  $op == 'deladmin' || 
-	  $op == 'assignstories' || 
-	  $op == 'deladminconf') 
-	  && $admdata['name'] != 'God'):
-    
-	die('Illegal Operation');
-endif;
+} 
+elseif (($op == 'mod_authors' 
+      || $op == 'modifyadmin' 
+	  || $op == 'UpdateAuthor' 
+	  || $op == 'AddAuthor' 
+  	  || $op == 'ABMain' 
+  	  || $op == 'honeypot' 
+  	  || $op == 'database' 
+  	  || $op == 'messages' 
+  	  || $op == 'newsletter' 
+	  || $op == 'deladmin2' 
+	  || $op == 'deladmin' 
+	  || $op == 'assignstories' 
+	  || $op == 'deladminconf') 
+	  && $admdata['name'] != 'God')
+{
+    include(NUKE_BASE_DIR.'header.php');
+	OpenTable();
+	echo '<div align="center"><img class="icons" align="absmiddle" width="200" src="'.img('unknown-error.png','error').'"></div><br />';
+	echo '<div align="center"><strong>You Do Not Have The Necessary Security Clearance To Access This Area!</strong></div><br />';
+	echo '<div align="center"><strong><span class="blink-one" style="color: red;">You Must Have A God Security Level</span></strong></div><br />';
+//	die('Illegal Operation');
+    CloseTable();
+    include(NUKE_BASE_DIR.'footer.php');
+
+}
 
 if ($admintest){
-    if (!$admin) exit('Illegal Operation');
-    switch($op){
+    if (!isset($admin)) 
+	exit('Illegal Operation');
+    
+	switch($op){
         case "do_gfx":
             do_gfx();
         break;

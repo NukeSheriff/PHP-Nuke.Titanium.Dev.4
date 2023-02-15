@@ -14,7 +14,8 @@
 */
 global $directory_mode;
 
-define('IN_PHPBB', true);
+if (!defined('IN_PHPBB')) define('IN_PHPBB', true);
+
 
 if( !empty($setmodules) )
 {
@@ -32,9 +33,9 @@ $phpbb_root_path = './../';
 require($phpbb_root_path . 'extension.inc');
 require('pagestart.' . $phpEx);
 
-@include_once($phpbb_root_path . 'attach_mod/includes/constants.'.$phpEx);
+include_once($phpbb_root_path . 'attach_mod/includes/constants.'.$phpEx);
 include(NUKE_INCLUDE_DIR.'functions_admin.'.$phpEx);
-@include_once($phpbb_root_path . 'attach_mod/includes/functions_attach.'.$phpEx);
+include_once($phpbb_root_path . 'attach_mod/includes/functions_attach.'.$phpEx);
 
 if (!intval($attach_config['allow_ftp_upload']))
 {
@@ -198,7 +199,7 @@ if ((file_exists($cache_dir)) && (is_dir($cache_dir)))
 {
     if (file_exists($cache_file))
     {
-        @unlink($cache_file);
+        unlink($cache_file);
     }
 }
 
@@ -219,7 +220,7 @@ if ($search_imagick)
     {
         if (!preg_match('/WIN/i', PHP_OS))
         {
-            $retval = @exec('whereis convert');
+            $retval = exec('whereis convert');
             $paths = explode(' ', $retval);
 
             if (is_array($paths))
@@ -239,14 +240,14 @@ if ($search_imagick)
         {
             $path = 'c:/imagemagick/convert.exe';
 
-            if (@file_exists(@amod_realpath($path)))
+            if (file_exists(amod_realpath($path)))
             {
                 $imagick = $path;
             }
         }
     }
 
-    if (@file_exists(@amod_realpath(trim($imagick))))
+    if (file_exists(amod_realpath(trim($imagick))))
     {
         $new_attach['img_imagick'] = trim($imagick);
     }
@@ -293,7 +294,7 @@ if ($check_upload)
     // Does the target directory exist, is it a directory and writeable. (only test if ftp upload is disabled)
     if (intval($attach_config['allow_ftp_upload']) == 0)
     {
-        if (!@file_exists(@amod_realpath($upload_dir)))
+        if (!file_exists(amod_realpath($upload_dir)))
         {
             $error = true;
             $error_msg = sprintf($lang['Directory_does_not_exist'], $attach_config['upload_dir']) . '<br />';
@@ -305,16 +306,16 @@ if ($check_upload)
             $error_msg = sprintf($lang['Directory_is_not_a_dir'], $attach_config['upload_dir']) . '<br />';
         }
 
-        if (!$error)
+        if (!isset($error))
         {
-            if ( !($fp = @fopen($upload_dir . '/0_000000.000', 'w')) )
+            if ( !($fp = fopen($upload_dir . '/0_000000.000', 'w')) )
             {
                 $error = TRUE;
                 $error_msg = sprintf($lang['Directory_not_writeable'], $attach_config['upload_dir']) . '<br />';
             }
             else
             {
-                @fclose($fp);
+                fclose($fp);
                 unlink_attach($upload_dir . '/0_000000.000');
             }
         }
@@ -324,7 +325,7 @@ if ($check_upload)
         // Check FTP Settings
         $server = ( empty($attach_config['ftp_server']) ) ? 'localhost' : $attach_config['ftp_server'];
 
-        $conn_id = @ftp_connect($server);
+        $conn_id = ftp_connect($server);
 
         if (!$conn_id)
         {
@@ -332,7 +333,7 @@ if ($check_upload)
             $error_msg = sprintf($lang['Ftp_error_connect'], $server) . '<br />';
         }
 
-        $login_result = @ftp_login($conn_id, $attach_config['ftp_user'], $attach_config['ftp_pass']);
+        $login_result = ftp_login($conn_id, $attach_config['ftp_user'], $attach_config['ftp_pass']);
 
         if ( (!$login_result) && (!$error) )
         {
@@ -340,26 +341,26 @@ if ($check_upload)
             $error_msg = sprintf($lang['Ftp_error_login'], $attach_config['ftp_user']) . '<br />';
         }
 
-        if (!@ftp_pasv($conn_id, intval($attach_config['ftp_pasv_mode'])))
+        if (!ftp_pasv($conn_id, intval($attach_config['ftp_pasv_mode'])))
         {
             $error = TRUE;
             $error_msg = $lang['Ftp_error_pasv_mode'];
         }
 
-        if (!$error)
+        if (!isset($error))
         {
             // Check Upload
-            $tmpfname = @tempnam('/tmp', 't0000');
+            $tmpfname = tempnam('/tmp', 't0000');
 
-            @unlink($tmpfname); // unlink for safety on php4.0.3+
+            unlink($tmpfname); // unlink for safety on php4.0.3+
 
-            $fp = @fopen($tmpfname, 'w');
+            $fp = fopen($tmpfname, 'w');
 
-            @fwrite($fp, 'test');
+            fwrite($fp, 'test');
 
-            @fclose($fp);
+            fclose($fp);
 
-            $result = @ftp_chdir($conn_id, $attach_config['ftp_path']);
+            $result = ftp_chdir($conn_id, $attach_config['ftp_path']);
 
             if (!$result)
             {
@@ -368,7 +369,7 @@ if ($check_upload)
             }
             else
             {
-                $res = @ftp_put($conn_id, 't0000', $tmpfname, FTP_ASCII);
+                $res = ftp_put($conn_id, 't0000', $tmpfname, FTP_ASCII);
 
                 if (!$res)
                 {
@@ -377,7 +378,7 @@ if ($check_upload)
                 }
                 else
                 {
-                    $res = @ftp_delete($conn_id, 't0000');
+                    $res = ftp_delete($conn_id, 't0000');
 
                     if (!$res)
                     {
@@ -387,13 +388,13 @@ if ($check_upload)
                 }
             }
 
-            @ftp_quit($conn_id);
+            ftp_quit($conn_id);
 
-            @unlink($tmpfname);
+            unlink($tmpfname);
         }
     }
 
-    if (!$error)
+    if (!isset($error))
     {
         message_die(GENERAL_MESSAGE, $lang['Test_settings_successful'] . '<br /><br />' . sprintf($lang['Click_return_attach_config'], '<a href="' . append_sid("admin_attachments.$phpEx?mode=manage") . '">', '</a>') . '<br /><br />' . sprintf($lang['Click_return_admin_index'], '<a href="' . append_sid("index.$phpEx?pane=right") . '">', '</a>'));
     }
@@ -402,7 +403,7 @@ if ($check_upload)
 // Management
 if ($submit && $mode == 'manage')
 {
-    if (!$error)
+    if (!isset($error))
     {
         message_die(GENERAL_MESSAGE, $lang['Attach_config_updated'] . '<br /><br />' . sprintf($lang['Click_return_attach_config'], '<a href="' . append_sid("admin_attachments.$phpEx?mode=manage") . '">', '</a>') . '<br /><br />' . sprintf($lang['Click_return_admin_index'], '<a href="' . append_sid("index.$phpEx?pane=right") . '">', '</a>'));
     }
@@ -430,6 +431,9 @@ if ($mode == 'manage')
     {
         $template->assign_block_vars('switch_ftp', array());
     }
+    
+	if(!isset($lang['ftp_info']))
+    $lang['ftp_info'] = 'FTP Info';
 
     $template->assign_vars(array(
         'L_MANAGE_TITLE'                => $lang['Attach_settings'],
@@ -572,7 +576,7 @@ if ($submit && $mode == 'shadow')
 
 if ($mode == 'shadow')
 {
-    @set_time_limit(0);
+    set_time_limit(0);
 
     // Shadow Attachments
     $template->set_filenames(array(
@@ -582,7 +586,10 @@ if ($mode == 'shadow')
     $shadow_attachments = array();
     $shadow_row = array();
 
-    $template->assign_vars(array(
+    if(!isset($hidden))
+    $hidden = '';
+    
+	$template->assign_vars(array(
         'L_SHADOW_TITLE'    => $lang['Shadow_attachments'],
         'L_SHADOW_EXPLAIN'    => $lang['Shadow_attachments_explain'],
         'L_EXPLAIN_FILE'    => $lang['Shadow_attachments_file_explain'],
@@ -641,17 +648,19 @@ if ($mode == 'shadow')
     $file_attachments = collect_attachments();
     $shadow_attachments = array();
     $shadow_row = array();
-
+    $table_attachments = array();
     // Now determine the needed Informations
 
     // Go through all Files on the filespace and see if all are stored within the DB
-	for ($i = 0; $i < count($file_attachments); $i++)
+	for ($i = 0; $i < (is_countable($file_attachments) ? count($file_attachments) : 0); $i++)
     {
-		if (sizeof($table_attachments['attach_id']) > 0)
+		if(isset($table_attachments['attach_id'])):
+		
+		if (sizeof(is_countable($table_attachments['attach_id'])) > 0)
         {
             if ($file_attachments[$i] != '')
             {
-                if (!in_array(trim($file_attachments[$i]), $table_attachments['physical_filename']) )
+                if (!in_array(trim((string) $file_attachments[$i]), $table_attachments['physical_filename']) )
                 {
                     $shadow_attachments[] = trim($file_attachments[$i]);
                     // Delete this file from the file_attachments to not have double assignments in next steps
@@ -663,14 +672,18 @@ if ($mode == 'shadow')
         {
             if ($file_attachments[$i] != '')
             {
-                $shadow_attachments[] = trim($file_attachments[$i]);
+                $shadow_attachments[] = trim((string) $file_attachments[$i]);
                 // Delete this file from the file_attachments to not have double assignments in next steps
                 $file_attachments[$i] = '';
             }
         }
+		endif;
     }
 
     // Go through the Database and get those Files not stored at the Filespace
+	$assign_attachments = [];
+	$table_attachments = [];
+	
 	for ($i = 0; $i < sizeof($assign_attachments); $i++)
 	{
 		if (!in_array($assign_attachments[$i], $table_attachments['attach_id']))
@@ -681,7 +694,7 @@ if ($mode == 'shadow')
 		}
 	}
 	
-    if($table_attachments['attach_id']) 
+    if(isset($table_attachments['attach_id'])) 
     {
         // Go through the Database and get those Files not stored at the Filespace
         for ($i = 0; $i < sizeof($table_attachments['attach_id']); $i++)
@@ -703,7 +716,7 @@ if ($mode == 'shadow')
         }
     }
 
-    if($table_attachments['attach_id']) {
+    if(isset($table_attachments['attach_id'])) {
         // Now look at the missing posts and PM's
     	for ($i = 0; $i < sizeof($table_attachments['attach_id']); $i++)
         {
@@ -719,10 +732,14 @@ if ($mode == 'shadow')
         }
     }
 
+        if(!isset($shadow_row['attach_id']))
+        $shadow_row['attach_id'] = '';
+
     // Now look for Attachment ID's defined for posts or topics but not defined at the Attachments Description Table
 	for ($i = 0; $i < sizeof($shadow_attachments); $i++)
     {
-        $template->assign_block_vars('file_shadow_row', array(
+
+		$template->assign_block_vars('file_shadow_row', array(
             'ATTACH_ID'            => $shadow_attachments[$i],
             'ATTACH_FILENAME'    => $shadow_attachments[$i],
             'ATTACH_COMMENT'    => $lang['No_file_comment_available'],
@@ -745,7 +762,7 @@ if ($mode == 'shadow')
 
 if ($submit && $mode == 'cats')
 {
-    if (!$error)
+    if (!isset($error))
     {
         message_die(GENERAL_MESSAGE, $lang['Attach_config_updated'] . '<br /><br />' . sprintf($lang['Click_return_attach_config'], '<a href="' . append_sid("admin_attachments.$phpEx?mode=cats") . '">', '</a>') . '<br /><br />' . sprintf($lang['Click_return_admin_index'], '<a href="' . append_sid("index.$phpEx?pane=right") . '">', '</a>'));
     }
@@ -904,12 +921,12 @@ if ($check_image_cat)
     // Does the target directory exist, is it a directory and writeable. (only test if ftp upload is disabled)
     if (intval($attach_config['allow_ftp_upload']) == 0 && intval($attach_config['img_create_thumbnail']) == 1)
     {
-        if (!@file_exists(@amod_realpath($upload_dir)))
+        if (!file_exists(amod_realpath($upload_dir)))
         {
-            @mkdir($upload_dir, $directory_mode);
-            @chmod($upload_dir, $directory_mode);
+            mkdir($upload_dir, $directory_mode);
+            chmod($upload_dir, $directory_mode);
 
-            if (!@file_exists(@amod_realpath($upload_dir)))
+            if (!file_exists(amod_realpath($upload_dir)))
             {
                 $error = TRUE;
                 $error_msg = sprintf($lang['Directory_does_not_exist'], $upload_dir) . '<br />';
@@ -923,17 +940,17 @@ if ($check_image_cat)
             $error_msg = sprintf($lang['Directory_is_not_a_dir'], $upload_dir) . '<br />';
         }
 
-        if (!$error)
+        if (!isset($error))
         {
-            if ( !($fp = @fopen($upload_dir . '/0_000000.000', 'w')) )
+            if ( !($fp = fopen($upload_dir . '/0_000000.000', 'w')) )
             {
                 $error = TRUE;
                 $error_msg = sprintf($lang['Directory_not_writeable'], $upload_dir) . '<br />';
             }
             else
             {
-                @fclose($fp);
-                @unlink($upload_dir . '/0_000000.000');
+                fclose($fp);
+                unlink($upload_dir . '/0_000000.000');
             }
         }
     }
@@ -942,7 +959,7 @@ if ($check_image_cat)
         // Check FTP Settings
         $server = ( empty($attach_config['ftp_server']) ) ? 'localhost' : $attach_config['ftp_server'];
 
-        $conn_id = @ftp_connect($server);
+        $conn_id = ftp_connect($server);
 
         if (!$conn_id)
         {
@@ -950,7 +967,7 @@ if ($check_image_cat)
             $error_msg = sprintf($lang['Ftp_error_connect'], $server) . '<br />';
         }
 
-        $login_result = @ftp_login($conn_id, $attach_config['ftp_user'], $attach_config['ftp_pass']);
+        $login_result = ftp_login($conn_id, $attach_config['ftp_user'], $attach_config['ftp_pass']);
 
         if (!$login_result && !$error)
         {
@@ -958,33 +975,33 @@ if ($check_image_cat)
             $error_msg = sprintf($lang['Ftp_error_login'], $attach_config['ftp_user']) . '<br />';
         }
 
-        if (!@ftp_pasv($conn_id, intval($attach_config['ftp_pasv_mode'])))
+        if (!ftp_pasv($conn_id, intval($attach_config['ftp_pasv_mode'])))
         {
             $error = TRUE;
             $error_msg = $lang['Ftp_error_pasv_mode'];
         }
 
-        if (!$error)
+        if (!isset($error))
         {
             // Check Upload
-            $tmpfname = @tempnam('/tmp', 't0000');
+            $tmpfname = tempnam('/tmp', 't0000');
 
-            @unlink($tmpfname); // unlink for safety on php4.0.3+
+            unlink($tmpfname); // unlink for safety on php4.0.3+
 
-            $fp = @fopen($tmpfname, 'w');
+            $fp = fopen($tmpfname, 'w');
 
-            @fwrite($fp, 'test');
+            fwrite($fp, 'test');
 
-            @fclose($fp);
+            fclose($fp);
 
-            $result = @ftp_chdir($conn_id, $attach_config['ftp_path'] . '/' . THUMB_DIR);
+            $result = ftp_chdir($conn_id, $attach_config['ftp_path'] . '/' . THUMB_DIR);
 
             if (!$result)
             {
-                @ftp_mkdir($conn_id, $attach_config['ftp_path'] . '/' . THUMB_DIR);
+                ftp_mkdir($conn_id, $attach_config['ftp_path'] . '/' . THUMB_DIR);
             }
 
-            $result = @ftp_chdir($conn_id, $attach_config['ftp_path'] . '/' . THUMB_DIR);
+            $result = ftp_chdir($conn_id, $attach_config['ftp_path'] . '/' . THUMB_DIR);
 
             if (!$result)
             {
@@ -993,7 +1010,7 @@ if ($check_image_cat)
             }
             else
             {
-                $res = @ftp_put($conn_id, 't0000', $tmpfname, FTP_ASCII);
+                $res = ftp_put($conn_id, 't0000', $tmpfname, FTP_ASCII);
 
                 if (!$res)
                 {
@@ -1002,7 +1019,7 @@ if ($check_image_cat)
                 }
                 else
                 {
-                    $res = @ftp_delete($conn_id, 't0000');
+                    $res = ftp_delete($conn_id, 't0000');
 
                     if (!$res)
                     {
@@ -1012,13 +1029,13 @@ if ($check_image_cat)
                 }
             }
 
-            @ftp_quit($conn_id);
+            ftp_quit($conn_id);
 
-            @unlink($tmpfname);
+            unlink($tmpfname);
         }
     }
 
-    if (!$error)
+    if (!isset($error))
     {
         message_die(GENERAL_MESSAGE, $lang['Test_settings_successful'] . '<br /><br />' . sprintf($lang['Click_return_attach_config'], '<a href="' . append_sid("admin_attachments.$phpEx?mode=cats") . '">', '</a>') . '<br /><br />' . sprintf($lang['Click_return_admin_index'], '<a href="' . append_sid("index.$phpEx?pane=right") . '">', '</a>'));
     }
@@ -1027,7 +1044,7 @@ if ($check_image_cat)
 if ($mode == 'sync')
 {
     $info = '';
-    @set_time_limit(0);
+    set_time_limit(0);
 
     echo (isset($lang['Sync_topics'])) ? $lang['Sync_topics'] : 'Sync Topics';
 
@@ -1042,7 +1059,7 @@ if ($mode == 'sync')
     $i = 0;
     while ($row = $db->sql_fetchrow($result))
     {
-        @flush();
+        flush();
         echo '.';
         if ($i % 50 == 0)
         {
@@ -1081,7 +1098,7 @@ if ($mode == 'sync')
 
         $db->sql_query($sql);
 
-        @flush();
+        flush();
         echo '.';
         if ($i % 50 == 0)
         {
@@ -1107,7 +1124,7 @@ if ($mode == 'sync')
     $i = 0;
     while ($row = $db->sql_fetchrow($result))
     {
-        @flush();
+        flush();
         echo '.';
         if ($i % 50 == 0)
         {
@@ -1143,7 +1160,7 @@ if ($mode == 'sync')
     $i = 0;
     while ($row = $db->sql_fetchrow($result))
     {
-        @flush();
+        flush();
         echo '.';
         if ($i % 50 == 0)
         {
@@ -1159,7 +1176,7 @@ if ($mode == 'sync')
     }
     $db->sql_freeresult($result);
 
-    @flush();
+    flush();
     die('<br /><br /><br />' . $lang['Attach_sync_finished'] . '<br /><br />' . $info);
 
     exit;
@@ -1254,7 +1271,7 @@ if ($submit && $mode == 'quota')
             }
         }
 
-        if (!$error)
+        if (!isset($error))
         {
             $filesize = ($size_select == 'kb' ) ? round($filesize * 1024) : ( ($size_select == 'mb') ? round($filesize * 1048576) : $filesize );
 
@@ -1269,7 +1286,7 @@ if ($submit && $mode == 'quota')
 
     }
 
-    if (!$error)
+    if (!isset($error))
     {
         $message = $lang['Attach_config_updated'] . '<br /><br />' . sprintf($lang['Click_return_attach_config'], '<a href="' . append_sid("admin_attachments.$phpEx?mode=quota") . '">', '</a>') . '<br /><br />' . sprintf($lang['Click_return_admin_index'], '<a href="' . append_sid("index.$phpEx?pane=right") . '">', '</a>');
 
@@ -1443,6 +1460,10 @@ if ($mode == 'quota' && $e_mode == 'view_quota')
         }
     }
 }
+
+if(!isset($error))
+$error = '';
+
 if ($error)
 {
     $template->set_filenames(array(

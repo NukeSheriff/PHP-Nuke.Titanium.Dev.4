@@ -67,7 +67,7 @@ function generate_user_info(&$row,
 			  &$online_status_img, 
 			      &$online_status)
 {
-    global $lang, $theme_name, $images, $board_config, $online_color, $offline_color, $hidden_color;
+    global $phpEx, $lang, $theme_name, $images, $board_config, $online_color, $offline_color, $hidden_color;
     
     $username = $row['username'];
 	$from = $row['user_from'].'&nbsp;';
@@ -85,7 +85,7 @@ function generate_user_info(&$row,
            break;
            case USER_AVATAR_GALLERY:
            $poster_avatar = $board_config['avatar_gallery_path'] . '/' . (($row['user_avatar'] 
-			== 'blank.gif' || $row['user_avatar'] == 'gallery/blank.gif') ? 'blank.png' : $row['user_avatar']);
+			== 'blank.png' || $row['user_avatar'] == 'gallery/blank.png') ? 'blank.png' : $row['user_avatar']);
            break;
 		}
         # Mod: Forum Index Avatar Mod v3.0.0 END
@@ -307,7 +307,7 @@ elseif(isset($_POST['joingroup']) && $group_id)
 	  $headers = array('Content-Type: text/html; charset=UTF-8', 'From: '.$board_config['board_email'], 'Reply-To: '.$board_config['board_email'], 'Return-Path: '.
 	  $board_config['board_email']);
       
-	  evo_phpmailer( $moderator['user_email'], $subject, $content, $headers );
+	  phpmailer( $moderator['user_email'], $subject, $content, $headers );
     endif;
     
     $template->assign_vars(array(
@@ -528,7 +528,7 @@ elseif($group_id)
                     
 					$headers = array('Content-Type: text/html; charset=UTF-8', 'From: '.$board_config['board_email'], 'Reply-To: '.$board_config['board_email'], 'Return-Path: '
 					.$board_config['board_email']);
-                    evo_phpmailer($row['user_email'],$subject,$content,$headers);
+                    phpmailer($row['user_email'],$subject,$content,$headers);
                  
                 else: 
                     $template->assign_vars(array(
@@ -714,7 +714,7 @@ elseif($group_id)
                             $headers[] = 'Content-Type: text/html; charset=UTF-8';
                             $headers[] = 'Reply-To: '.$board_config['board_email'];
                             $headers[] = 'Return-Path: '.$board_config['board_email'];
-                            evo_phpmailer( $addbcc, $subject, $content, $headers );
+                            phpmailer( $addbcc, $subject, $content, $headers );
                         endfor;
                     endif;
                 endif;
@@ -947,7 +947,7 @@ elseif($group_id)
       break;
       case USER_AVATAR_GALLERY:
       $modavatar = $board_config['avatar_gallery_path'].'/'.(($group_moderator['user_avatar'] 
-	  == 'blank.gif' || $row['user_avatar'] == 'gallery/blank.gif') ? 'blank.png' : $group_moderator['user_avatar']);
+	  == 'blank.png' || $row['user_avatar'] == 'gallery/blank.png') ? 'blank.png' : $group_moderator['user_avatar']);
       break;
 	}
 	$mod_avatar = '<img class="rounded-corners-header" height="auto" width="30" src="'.$modavatar.'">&nbsp;';
@@ -978,6 +978,11 @@ elseif($group_id)
     # Mod: Online/Offline/Hidden v3.0.0 END
 	
  	$s_hidden_fields .= '<input type="hidden" name="sid" value="'.$userdata['session_id'].'" />';
+
+    if(!isset($select_sort_mode))
+	$select_sort_mode = '';
+    if(!isset($select_sort_order))
+	$select_sort_order = '';
 	
     $template->assign_vars(array(
 		'L_GROUP_INFORMATION' => $lang['Group_Information'],
@@ -1083,7 +1088,7 @@ elseif($group_id)
 	endif;
 	
     # Mod: Forum Index Avatar Mod v3.0.0 START
-    switch($group_members[$i]['user_avatar_type'])
+    switch(isset($group_members[$i]['user_avatar_type']))
     {
       case USER_AVATAR_UPLOAD:
       $current_avatar = $board_config['avatar_path'] . '/' . $group_members[$i]['user_avatar'];
@@ -1093,7 +1098,7 @@ elseif($group_id)
       break;
       case USER_AVATAR_GALLERY:
       $current_avatar = $board_config['avatar_gallery_path'] . '/' . (($group_members[$i]['user_avatar'] 
-	  == 'blank.gif' || $row['user_avatar'] == 'gallery/blank.gif') ? 'blank.png' : $group_members[$i]['user_avatar']);
+	  == 'blank.png' || $row['user_avatar'] == 'gallery/blank.png') ? 'blank.png' : $group_members[$i]['user_avatar']);
       break;
 	}
 	$user_avatar = '<img class="rounded-corners-header" height="auto" width="30" src="'.$current_avatar.'">&nbsp;';
@@ -1241,7 +1246,7 @@ elseif($group_id)
                   break;
                   case USER_AVATAR_GALLERY:
                   $current_avatar = $board_config['avatar_gallery_path'].'/'.(($modgroup_pending_list[$i]['user_avatar'] 
-	              == 'blank.gif' || $row['user_avatar'] == 'gallery/blank.gif') ? 'blank.png' : $modgroup_pending_list[$i]['user_avatar']);
+	              == 'blank.png' || $row['user_avatar'] == 'gallery/blank.png') ? 'blank.png' : $modgroup_pending_list[$i]['user_avatar']);
                   break;
 	          }
 	
@@ -1408,7 +1413,15 @@ else
             'user' => 'groupcp_user_body.tpl'
         ));
         //make_jumpbox('viewforum.' . $phpEx);
-        
+        if(!isset($s_pending_groups_opt))
+		$s_pending_groups_opt = '';
+
+        if(!isset($userdata['session_id']))
+		$userdata['session_id'] = '';
+
+        if(!isset($s_member_groups_opt))
+		$s_member_groups_opt = '';
+		
         if($s_pending_groups_opt != '' || $s_member_groups_opt != '') 
         $template->assign_block_vars('switch_groups_joined', array());
         
@@ -1435,8 +1448,8 @@ else
             'S_USERGROUP_ACTION' => append_sid("groupcp.$phpEx"),
             'S_HIDDEN_FIELDS' => $s_hidden_fields,
             'GROUP_LIST_SELECT' => $s_group_list,
-            'GROUP_PENDING_SELECT' => $s_pending_groups,
-            'GROUP_MEMBER_SELECT' => $s_member_groups
+            'GROUP_PENDING_SELECT' => $s_pending_groups = $s_pending_groups ?? '',
+            'GROUP_MEMBER_SELECT' => $s_member_groups = $s_member_groups ?? ''
         ));
         
         $template->pparse('user');

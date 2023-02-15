@@ -13,9 +13,8 @@ print "</div><hr />";
 # TEST CODE GOES HERE - START
 ###########################################################################################################################################################################
 
-    # SIMPLE TEST
+    # SIMPLE TEST USING SWF FLASH AUTO LOADER
 	# START sample flash instance 9/5/2017
-    print ini_get("open_basedir");    
 	print '<div align="center">';
 	$newswf = new swfheader(false);
     $newswf->loadswf("modules/Titanium_SandBox/swf/theghost.swf");

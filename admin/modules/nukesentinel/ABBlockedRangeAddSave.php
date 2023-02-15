@@ -72,7 +72,7 @@ if($testnum1 > 0 OR $testnum2 >0 OR $testnum3 >0 OR $testnum4 >0) {
   blockedrangemenu();
   CloseMenu();
   CloseTable();
-  echo '<br />'."\n";
+
   OpenTable();
   if($testnum1 > 0) {
     $testmessage .= '<table summary="" align="center" border="0" cellpadding="2" cellspacing="2" bgcolor="'.$bgcolor2.'" width="100%">'."\n";
@@ -190,9 +190,7 @@ if($testnum1 > 0 OR $testnum2 >0 OR $testnum3 >0 OR $testnum4 >0) {
   $xnotes = str_replace("<br>", "\r\n", $xnotes);
   $xnotes = str_replace("<br />", "\r\n", $xnotes);
   $xnotes = htmlentities($xnotes, ENT_QUOTES);
-  if(!get_magic_quotes_runtime()) {
-    $xnotes = addslashes($xnotes);
-  }
+  $xnotes = addslashes($xnotes);
   if($xexpires>0) { $xexpires = $bantime + ($xexpires * 86400); }
   $xtime = time();
   $new_masscidr = ABGetCIDRs($longip_lo, $longip_hi);

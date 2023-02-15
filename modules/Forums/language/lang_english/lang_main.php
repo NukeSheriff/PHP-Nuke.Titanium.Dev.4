@@ -84,7 +84,7 @@
 // 2002-08-27  Philip M. White        - fixed many grammar problems
 //
 
-$lang['private_message_notify'] = 'Hello {USERNAME},<br /><br />The member "{SENDER_USERNAME}" from "{SITENAME}" has just sent you a new private message to your account and you have requested that you be notified on this event. The content of the message is as follow:<br /><br />"{PM_MESSAGE}"<br /><br />You can view your new message by clicking on the following link:<br /><br />{U_INBOX}<br /><br />Remember that you can always choose not to be notified of new messages by changing the appropriate setting in your profile.<br /><br />{EMAIL_SIG}';
+$lang['private_message_notify'] = 'Hello {USERNAME},<br /><br />The member "{SENDER_USERNAME}" from "{SITENAME}" has just sent you a new private message to your<br />account, and you have requested that you be notified on this event. The content of the message is as follows:<br /><br />"{PM_MESSAGE}"<br /><br />You can view your new message by clicking on the following link:<br />{U_INBOX}<br /><img src="https://www.php-nuke-titanium.86it.us/images/banners/10.png" alt="PHP-Nuke Titanium HQ" title="PHP-Nuke Titanium HQ" data-alt-src="https://www.php-nuke-titanium.86it.us/images/banners/10.png" width="472" height="79" border="0"><br />Remember that you can always choose not to be notified of new messages by changing the appropriate setting in your profile.<br /><br />{EMAIL_SIG}';
 
 $lang['topic_notify'] = 'Hello {USERNAME},<br /><br />You are receiving this email because you are watching the topic, "{TOPIC_TITLE}" at {SITENAME}. This topic has received a reply since your last visit. You can use the following link to view the replies made, no more notifications will be sent until you visit the topic.<br /><br />{U_TOPIC}<br /><br />The contents of the posted reply by {REPLY_BY} are as follows:<br /><br />{CONTENTS}<br /><br />{ATTACHMENT}<br /><br />If you no longer wish to watch this topic you can either click the "Stop watching this topic link" found at the bottom of the topic above, or by clicking the following link:<br /><br />{U_STOP_WATCHING_TOPIC}<br /><br />{EMAIL_SIG}';
 
@@ -185,7 +185,7 @@ $lang['Page_of'] = 'Page <strong>%d</strong> of <strong>%d</strong>'; // Replace
 $lang['facebook'] = 'Facebook Profile';
 $lang['facebook_explain'] = 'Enter your Facebook profile id number';
 $lang['FACEBOOK_PROFILE'] = 'Facebook';
-$lang['Visit_facebook'] = 'Visit user\'s Facebook Page';
+$lang['Visit_facebook'] = 'Visit user\'s Facebook';
 /*****[END]********************************************
  [ Mod:     Facebook Profile Mod               v1.0.0 ]
  ******************************************************/ 
@@ -226,18 +226,18 @@ $lang['Board_disable'] = 'Sorry, but this board is currently unavailable.  Pleas
 //
 // Global Header strings
 //
-$lang['Registered_users'] = 'Registered Portal Members:';
+$lang['Registered_users'] = 'Registered Users:';
 /*****[BEGIN]******************************************
  [ Mod:     Users of the day                   v2.1.0 ]
  ******************************************************/
-$lang['day_userlist_users'] = '%d registered users have visited us in the last %d hours:';
+$lang['day_userlist_users'] = '%d registered users visit during the last %d hours:';
 /*****[END]********************************************
  [ Mod:     Users of the day                   v2.1.0 ]
  ******************************************************/
-$lang['Browsing_forum'] = 'Members browsing this forum:';
-$lang['Online_users_zero_total'] = 'In total there are <strong>0</strong> members online :: ';
-$lang['Online_users_total'] = 'In total there are <strong>%d</strong> members online :: ';
-$lang['Online_user_total'] = 'In total there is <strong>%d</strong> member online :: ';
+$lang['Browsing_forum'] = 'Users browsing this forum:';
+$lang['Online_users_zero_total'] = 'In total there are <strong>0</strong> users online :: ';
+$lang['Online_users_total'] = 'In total there are <strong>%d</strong> users online :: ';
+$lang['Online_user_total'] = 'In total there is <strong>%d</strong> user online :: ';
 $lang['Reg_users_zero_total'] = '0 Registered, ';
 $lang['Reg_users_total'] = '%d Registered, ';
 $lang['Reg_user_total'] = '%d Registered, ';
@@ -247,7 +247,7 @@ $lang['Hidden_users_total'] = '%d Hidden and ';
 $lang['Guest_users_zero_total'] = '0 Guests';
 $lang['Guest_users_total'] = '%d Guests';
 $lang['Guest_user_total'] = '%d Guest';
-$lang['Record_online_users'] = 'Most members ever online was <strong>%s</strong> on %s'; // first %s = number of users, second %s is the date.
+$lang['Record_online_users'] = 'Most users ever online was <strong>%s</strong> on %s'; // first %s = number of users, second %s is the date.
 
 $lang['Admin_online_color'] = '%sAdministrator%s';
 $lang['Mod_online_color'] = '%sModerator%s';
@@ -283,19 +283,19 @@ $lang['Last_Post'] = 'Last Post';
 /*****[END]********************************************
  [ Mod:     Resize Posted Images               v2.4.5 ]
  ******************************************************/
-$lang['Moderator'] = 'Mod Group:';
+$lang['Moderator'] = 'Mod Group:'; 
 $lang['Moderators'] = 'Mod Groups:';
 
 //
 // Stats block text
 //
-$lang['Posted_articles_zero_total'] = 'Our members have posted a total of 0 articles'; // Number of posts
-$lang['Posted_articles_total'] = 'Our members have posted a total of %d articles'; // Number of posts
-$lang['Posted_article_total'] = 'Our members have posted a total of %d article'; // Number of posts
-$lang['Registered_users_zero_total'] = 'We have 0 registered members'; // # registered users
-$lang['Registered_users_total'] = 'We have %d registered members'; // # registered users
-$lang['Registered_user_total'] = 'We have %d registered member'; // # registered users
-$lang['Newest_user'] = 'The newest registered member is %s%s%s'; // a href, username, /a
+$lang['Posted_articles_zero_total'] = 'Our users have posted a total of 0 articles'; // Number of posts
+$lang['Posted_articles_total'] = 'Our users have posted a total of %d articles'; // Number of posts
+$lang['Posted_article_total'] = 'Our users have posted a total of %d article'; // Number of posts
+$lang['Registered_users_zero_total'] = 'We have 0 registered users'; // # registered users
+$lang['Registered_users_total'] = 'We have %d registered users'; // # registered users
+$lang['Registered_user_total'] = 'We have %d registered user'; // # registered users
+$lang['Newest_user'] = 'The newest registered user is %s%s%s'; // a href, username, /a
 
 $lang['No_new_posts_last_visit'] = 'No new posts since your last visit';
 $lang['No_new_posts'] = 'No new posts';
@@ -318,7 +318,7 @@ $lang['Forgotten_password'] = 'I forgot my password';
 
 $lang['Log_me_in'] = 'Log me on automatically each visit';
 
-$lang['Error_login'] = 'You have specified an incorrect or inactive member name, or an invalid password.';
+$lang['Error_login'] = 'You have specified an incorrect or inactive username, or an invalid password.';
 
 //
 // Index page
@@ -329,7 +329,7 @@ $lang['No_forums'] = 'This board has no forums';
 
 $lang['Private_Message'] = 'Private Message';
 $lang['Private_Messages'] = 'Private Messages';
-$lang['Who_is_Online'] = 'Members Online';
+$lang['Who_is_Online'] = 'Who is Online';
 
 $lang['Mark_all_forums'] = 'Mark forums read';
 $lang['Forums_marked_read'] = 'All forums have been marked read';
@@ -392,8 +392,8 @@ $lang['Oldest_First'] = 'Oldest First';
 
 $lang['Back_to_top'] = 'Back to top';
 
-$lang['Read_profile'] = 'View member\'s profile';
-$lang['Visit_website'] = 'Visit member\'s website';
+$lang['Read_profile'] = 'View user\'s profile';
+$lang['Visit_website'] = 'Visit user\'s website';
 $lang['ICQ_status'] = 'ICQ Status';
 $lang['Edit_delete_post'] = 'Edit/Delete this post';
 $lang['View_IP'] = 'View IP address of poster';
@@ -584,7 +584,7 @@ $lang['Edit_message'] = 'Edit private message';
 
 $lang['Notification_subject'] = 'New Private Message has arrived!';
 
-$lang['Find_username'] = 'Find a member name';
+$lang['Find_username'] = 'Find a username';
 $lang['Find'] = 'Find';
 $lang['No_match'] = 'No matches found.';
 
@@ -607,7 +607,7 @@ $lang['Click_view_privmsg'] = 'Click %sHere%s to visit your Inbox';
 //
 // Profiles/Registration
 //
-$lang['Viewing_user_profile'] = 'Profile of&nbsp;&nbsp;%s'; // %s is username
+$lang['Viewing_user_profile'] = 'Profile of %s'; // %s is username
 $lang['About_user'] = 'All about %s'; // %s is username
 /*****[BEGIN]******************************************
  [ Mod:    User Administration Link on Profile v1.0.0 ]
@@ -632,7 +632,7 @@ $lang['sceditor_state'] = 'Choose which state SCEditor should be in by default';
 $lang['sceditor_display_mode'] = 'Display Mode';
 $lang['sceditor_editor_mode'] = 'Editor Mode';
 
-$lang['Website'] = 'Website/Portal';
+$lang['Website'] = 'Website';
 $lang['Location'] = 'Location';
 $lang['Contact'] = 'Contact';
 $lang['Email_address'] = 'Email';
@@ -648,7 +648,9 @@ $lang['User_post_pct_stats'] = '%.2f%% of total posts'; // 1.25% of total
 $lang['User_post_day_stats'] = '%.2f per day'; // 1.5 posts per day
 $lang['Search_user_posts'] = 'Find all posts by %s'; // Find all posts by username
 
-$lang['No_user_id_specified'] = 'The user you are looking for is in Ghost Mode!<br />- THIS USER DOES NOT WANT TO BE FOUND -';
+$lang['Ghost_Mode_Specified'] = '<img style="padding-bottom: 3px;" src="images/ico/snapchat-002.ico" alt="Ghost Mode" data-alt-src="images/ico/snapchat-002.ico" width="16" height="19"> User is in Ghost Mode';
+$lang['No_user_id_specified'] = '<img style="padding-bottom: 3px;" src="images/ico/snapchat-002.ico" alt="Ghost Mode" data-alt-src="images/ico/snapchat-002.ico" width="16" height="19"> User is in Ghost Mode';
+$lang['No_user_id_members_list_specified'] = 'No Users Found';
 $lang['Wrong_Profile'] = 'You cannot modify a profile that is not your own.';
 
 $lang['Only_one_avatar'] = 'Only one type of avatar can be specified';
@@ -755,7 +757,7 @@ $lang['Avatar_filesize'] = 'The avatar image file size must be less than %d KB';
 $lang['Avatar_imagesize'] = 'The avatar must be less than %d pixels wide and %d pixels high';
 
 $lang['Welcome_subject'] = 'Welcome to %s Forums'; // Welcome to my.com forums
-$lang['New_account_subject'] = 'New member account';
+$lang['New_account_subject'] = 'New user account';
 $lang['Account_activated_subject'] = 'Account Activated';
 
 $lang['Account_added'] = 'Thank you for registering. Your account has been created. You may now log in with your username and password';
@@ -854,7 +856,7 @@ $lang['Group_not_exist'] = 'That user group does not exist';
 
 $lang['Join_group'] = 'Join Group';
 $lang['No_group_members'] = 'This group has no members';
-$lang['Group_hidden_members'] = 'This group is hidden; you cannot view its memberships';
+$lang['Group_hidden_members'] = 'This group is hidden; you cannot view its membership';
 $lang['No_pending_group_members'] = 'This group has no pending members';
 $lang['Group_joined'] = 'You have successfully subscribed to this group.<br />You will be notified when your subscription is approved by the group moderator.';
 $lang['Group_request'] = 'A request to join your group has been made.';
@@ -958,7 +960,7 @@ $lang['Sorry_auth_vote'] = 'Sorry, but only %s can vote in polls in this forum.'
 
 // These replace the %s in the above strings
 $lang['Auth_Anonymous_Users'] = '<strong>anonymous users</strong>';
-$lang['Auth_Registered_Users'] = '<strong>registered members</strong>';
+$lang['Auth_Registered_Users'] = '<strong>registered users</strong>';
 $lang['Auth_Users_granted_access'] = '<strong>users granted special access</strong>';
 $lang['Auth_Moderators'] = '<strong>moderators</strong>';
 $lang['Auth_Administrators'] = '<strong>administrators</strong>';
@@ -1233,8 +1235,8 @@ $lang['Recent_click_return'] = 'Click %shere%s to return to recent site.';
 /*****[BEGIN]******************************************
  [ Mod:     Global Announcements               v1.2.8 ]
  ******************************************************/
-$lang['Topic_global_announcement']='<strong>Global Portal Announcement:</strong>';
-$lang['Post_global_announcement'] = 'Global Portal Announcement';
+$lang['Topic_global_announcement']='<strong>Global Announcement:</strong>';
+$lang['Post_global_announcement'] = 'Global Announcement';
 /*****[END]********************************************
  [ Mod:     Global Announcements               v1.2.8 ]
  ******************************************************/
@@ -1364,7 +1366,7 @@ $lang['Board_Currently_Disabled'] = 'Board is currently disabled';
 /*****[BEGIN]******************************************
  [ Mod:    Memberlist Find User                v1.0.0 ]
  ******************************************************/
-$lang['Look_up_User'] = 'Look up Member';
+$lang['Look_up_User'] = 'Look up User';
 /*****[END]********************************************
  [ Mod:    Memberlist Find User                v1.0.0 ] 
  ******************************************************/
@@ -1513,6 +1515,7 @@ $lang['topic_glance_priority'] = 'Cement this topic on the Recent Topics Display
 $lang['Online'] = 'Online';
 $lang['Offline'] = 'Offline';
 $lang['Hidden'] = 'Hidden';
+$lang['GhostMode'] = 'Ghost Mode<br/>Your profile is currently invisible!';
 $lang['is_online'] = '%s is online now';
 $lang['is_offline'] = '%s is offline';
 $lang['is_hidden'] = '%s is hidden';
@@ -1693,8 +1696,8 @@ $lang['No_gender_specify'] = 'None Specified';
 $lang['Birthday_range'] = 'Birthdays must yield ages between %d and %d years, inclusive.';
 $lang['No_birthdays'] = 'No birthdays today';
 $lang['Congratulations'] = 'Congratulations to: %s';
-$lang['Upcoming_birthdays'] = 'Members with a birthday within the next %d days: %s';
-$lang['No_upcoming'] = 'No portal members are having a birthday in the upcoming %d days';
+$lang['Upcoming_birthdays'] = 'Users with a birthday within the next %d days: %s';
+$lang['No_upcoming'] = 'No users are having a birthday in the upcoming %d days';
 $lang['Birthday'] = 'Date of Birth';
 $lang['Month'] = 'Month';
 $lang['Day'] = 'Day';
@@ -1728,9 +1731,9 @@ $lang['Birthday_popup'] = '%s would like to wish you a very happy birthday!';
 /*****[BEGIN]******************************************
  [ Mod:    Thank You Mod                       v1.1.8 ]
  ******************************************************/
-$lang['thankful'] = 'Thankful Portal Members';
+$lang['thankful'] = 'Thankful People';
 $lang['thanks_to'] = 'Thanks';
-$lang['thanks_end'] = 'for his/her post';
+$lang['thanks_end'] = 'for this post';
 $lang['thanks_alt'] = 'Thank Post';
 $lang['thanked_before'] = 'You have already thanked this topic';
 $lang['thanks_add'] = 'Your thanks has been given';
@@ -1780,7 +1783,7 @@ $lang['Votes'] = 'votes';
 /*****[BEGIN]******************************************
  [ Mod:     Arcade                             v3.0.2 ]
  ******************************************************/
-$lang['lib_arcade'] = 'Portal Arcade';
+$lang['lib_arcade'] = 'Arcade';
 $lang['statuser'] = 'User Stats';
 /*****[END]********************************************
  [ Mod:     Arcade                             v3.0.2 ]
@@ -1811,7 +1814,7 @@ $lang['Message_too_long'] = 'The message you entered is too long.';
 /*****[END]********************************************
  [ Mod:     Email topic to friend              v1.0.0 ]
  ******************************************************/
- 
+
 /*****[BEGIN]******************************************
  [ Mod:    Admin User Notes                    v1.0.0 ]
  ******************************************************/
@@ -1819,7 +1822,7 @@ $lang['Admin_notes'] = 'Admin User Notes';
 /*****[END]********************************************
  [ Mod:    Admin User Notes                    v1.0.0 ]
  ******************************************************/ 
- 
+
 /*****[BEGIN]******************************************
  [ Mod:     Related Topics                      v0.12 ]
 ******************************************************/
@@ -1833,7 +1836,7 @@ $lang['Related_topics'] = 'Related topics';
  ******************************************************/
 $lang['WhoIsViewingThisTopic'] = 'Who viewed <i class="fas fa-arrow-right" style="font-size: 12px;"></i>';
 $lang['WhoViewedMemberlist'] = 'Who Has Viewed This Topic?';  
-$lang['Topic_view_users'] = 'List members who have viewed this topic';
+$lang['Topic_view_users'] = 'List users that have viewed this topic';
 $lang['Topic_time'] = 'Last viewed';
 $lang['Topic_count'] = 'View count';
 $lang['Topic_view_count'] = 'Topic view count';

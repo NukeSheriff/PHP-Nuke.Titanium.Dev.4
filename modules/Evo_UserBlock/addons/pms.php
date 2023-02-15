@@ -1,34 +1,44 @@
 <?php
 /*=======================================================================
- PHP-Nuke Titanium v3.0.0 : Enhanced PHP-Nuke Web Portal System
+ PHP-Nuke Titanium : Nuke-Evolution | Enhanced and Advnanced
  =======================================================================*/
 
 /************************************************************************
-   Nuke-Evolution: Server Info Administration
+   Nuke-Evolution    : Server Info Administration
+   PHP-Nuke Titanium : Server Info Administration
    ============================================
    Copyright (c) 2005 by The Nuke-Evolution Team
+   Copyright (c) 2022 by The PHP-Nuke Titanium Group
 
-   Filename      : pms.php
-   Author(s)     : Technocrat (www.Nuke-Evolution.com)
-   Version       : 1.0.0
+   Filename      : avatar.php
+   Author(s)     : Ernest Allen Buffington, Technocrat
+   Version       : 4.0.3
    Date          : 05.19.2005 (mm.dd.yyyy)
-
-   Notes         : Evo User Block PMs Module
+   Last Update   : 12.12.2022 (mm.dd.yyyy)
+   
+   Notes         : Titanium/Evo User Block PMs Module
 ************************************************************************/
 
-if(!defined('NUKE_EVO')) {
-   die ("Illegal File Access");
-}
+if(!defined('NUKE_EVO')):
+  die("Illegal File Access");
+endif;
 
 global $evouserinfo_addons, $evouserinfo_pms, $lang_evo_userblock;
 
-if (is_user()):
+$one = "<i style=\"font-size: 17px; color: white\" onMouseOver=\"this.style.color='#ECAB53'\" onMouseOut=\"this.style.color='white'\" class=\"fas fa-envelope\"></i>";
 
+if(has_new_or_unread_private_messages() > 0):
+  $two = " <a class='modules' href='modules.php?name=Private_Messages' target='_self'> $one My InBox (".has_new_or_unread_private_messages().")</a>";
+else:
+  $two = " <a class='modules' href='modules.php?name=Private_Messages' target='_self'> $one My InBox (0)</a>";
+endif;
+
+if(is_user()):
     global $userinfo;    
+  
     $evouserinfo_pms  = '<div style="padding-left: 10px;">';
-    $evouserinfo_pms .= '  <i class="fas fa-envelope" aria-hidden="true"></i>&nbsp;'.$lang_evo_userblock['BLOCK']['PMS']['INBOX'].'<span style="float:right"><a title="'.$lang_evo_userblock['BLOCK']['PMS']['OPEN_INBOX'].'" href="modules.php?name=Private_Messages">'.has_new_or_unread_private_messages().'</a></span>';
-    $evouserinfo_pms .= '</div>';
-
+	$evouserinfo_pms .= $two."";
+	$evouserinfo_pms .= '</div>';
 endif;
 
 ?>

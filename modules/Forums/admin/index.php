@@ -13,6 +13,7 @@
  *   Id: index.php,v 1.40.2.7 2005/02/21 18:37:02 acydburn Exp
  *
  ***************************************************************************/
+
 /***************************************************************************
  *
  *   This program is free software; you can redistribute it and/or modify
@@ -21,6 +22,7 @@
  *   (at your option) any later version.
  *
  ***************************************************************************/
+
 /*****[CHANGES]**********************************************************
 -=[Base]=-
       Caching System                           v1.0.0       10/24/2005
@@ -39,7 +41,7 @@
 	  Arcade                                   v3.0.2       05/29/2009
  ************************************************************************/
 
-define('IN_PHPBB', 1);
+if (!defined('IN_PHPBB')) define('IN_PHPBB', true);
 
 //
 // Load default header
@@ -98,10 +100,10 @@ function inarray($needle, $haystack)
 if( isset($HTTP_GET_VARS['pane']) && $HTTP_GET_VARS['pane'] == 'left' )
 {
 
-    $dir = @opendir(".");
+    $dir = opendir(".");
 
     $setmodules = 1;
-    while( $file = @readdir($dir) )
+    while( $file = readdir($dir) )
     {
         if( preg_match("/^admin_.*?\." . $phpEx . "$/", $file) )
         {
@@ -109,7 +111,7 @@ if( isset($HTTP_GET_VARS['pane']) && $HTTP_GET_VARS['pane'] == 'left' )
         }
     }
 
-    @closedir($dir);
+    closedir($dir);
 
     unset($setmodules);
 
@@ -167,7 +169,8 @@ if( isset($HTTP_GET_VARS['pane']) && $HTTP_GET_VARS['pane'] == 'left' )
 /*****[END]********************************************
  [ Mod:     DHTML Slide Menu for ACP           v1.0.0 ]
  ******************************************************/
- while( list($cat, $action_array) = each($module) )
+//while( list($cat, $action_array) = each($module) )
+foreach ($module as $cat => $action_array)
 {
     $cat = ( !empty($lang[$cat]) ) ? $lang[$cat] : preg_replace("/_/", " ", $cat);
 
@@ -188,7 +191,8 @@ if( isset($HTTP_GET_VARS['pane']) && $HTTP_GET_VARS['pane'] == 'left' )
     ksort($action_array);
 
     $row_count = 0;
-    while( list($action, $file)   = each($action_array) )
+    //while( list($action, $file)   = each($action_array) )
+	foreach ($action_array as $action => $file)
     {
         $row_color = ( !($row_count%2) ) ? $theme['td_color1'] : $theme['td_color2'];
         $row_class = ( !($row_count%2) ) ? $theme['td_class1'] : $theme['td_class2'];
@@ -310,15 +314,15 @@ $sql = "SELECT COUNT(user_id) AS total
                     FROM " . USERS_TABLE . "
                     WHERE user_active = 0
                         AND user_id <> " . ANONYMOUS;
-                if ( !($result = $db->sql_query($sql)) )
+            if ( !($result = $db->sql_query($sql)) )
             {
                     message_die(GENERAL_ERROR,"Couldn't get statistic data!", __LINE__, __FILE__, $sql);
             }
-                if ( $row = $db->sql_fetchrow($result) )
+            if ( $row = $db->sql_fetchrow($result) )
             {
                     $total_deactivated_users = $row['total'];
             }
-                else
+            else
             {
                     message_die(GENERAL_ERROR,"Couldn't update pending information!", __LINE__, __FILE__, $sql);
             }
@@ -329,34 +333,35 @@ $sql = "SELECT COUNT(user_id) AS total
                     WHERE user_active = 0
                         AND user_id <> " . ANONYMOUS . "
                     ORDER BY username";
-                if ( !($result = $db->sql_query($sql)) )
+            if ( !($result = $db->sql_query($sql)) )
             {
                     message_die(GENERAL_ERROR,"Couldn't get statistic data!", __LINE__, __FILE__, $sql);
             }
-                while ( $row = $db->sql_fetchrow($result) )
+            
+			while ( $row = $db->sql_fetchrow($result) )
             {
                     $deactivated_names .= (($deactivated_names == '') ? '' : ', ') . UsernameColor($row['username']);
             }
                 $db->sql_freeresult($result);
-$sql = "SELECT COUNT(user_id) AS total
+                $sql = "SELECT COUNT(user_id) AS total
                     FROM " . USERS_TABLE . "
                     WHERE user_level = " . MOD . "
                         AND user_id <> " . ANONYMOUS;
-                if ( !($result = $db->sql_query($sql)) )
+            if ( !($result = $db->sql_query($sql)) )
             {
                     message_die(GENERAL_ERROR,"Couldn't get statistic data!", __LINE__, __FILE__, $sql);
             }
-                if ( $row = $db->sql_fetchrow($result) )
+            if ( $row = $db->sql_fetchrow($result) )
             {
                     $total_moderators = $row['total'];
             }
-                else
+            else
             {
                     message_die(GENERAL_ERROR,"Couldn't update pending information!", __LINE__, __FILE__, $sql);
             }
                 $db->sql_freeresult($result);
                 $moderator_names = '';
-            $sql = "SELECT username
+                $sql = "SELECT username
                     FROM " . USERS_TABLE . "
                     WHERE user_level = " . MOD . "
                         AND user_id <> " . ANONYMOUS . "
@@ -404,9 +409,13 @@ $sql = "SELECT COUNT(user_id) AS total
 /*****[END]********************************************
  [ Mod:    Advance Admin Index Stats           v1.0.0 ]
  ******************************************************/
-        $start_date = create_date($board_config['default_dateformat'], $board_config['board_startdate'], $board_config['board_timezone']);
+        global $board_config;
+		
+		if(empty($board_config['board_startdate']))
+        $board_config['board_startdate'] = '1672571760';
 
-        $boarddays = ( time() - $board_config['board_startdate'] ) / 86400;
+        $start_date = create_date($board_config['default_dateformat'], $board_config['board_startdate'], $board_config['board_timezone']);
+		$boarddays = ( time() - $board_config['board_startdate'] ) / 86400;
 
         $posts_per_day = sprintf("%.2f", $total_posts / $boarddays);
         $topics_per_day = sprintf("%.2f", $total_topics / $boarddays);
@@ -414,33 +423,33 @@ $sql = "SELECT COUNT(user_id) AS total
 
         $avatar_dir_size = 0;
 
-        if ($avatar_dir = @opendir(NUKE_BASE_DIR . $board_config['avatar_path']))
+        if ($avatar_dir = opendir(NUKE_BASE_DIR . $board_config['avatar_path']))
         {
-                while( $file = @readdir($avatar_dir) )
+                while( $file = readdir($avatar_dir) )
                 {
                         if( $file != "." && $file != ".." )
                         {
-                                $avatar_dir_size += @filesize(NUKE_BASE_DIR . $board_config['avatar_path'] . "/" . $file);
+                                $avatar_dir_size += filesize(NUKE_BASE_DIR . $board_config['avatar_path'] . "/" . $file);
                         }
                 }
-                @closedir($avatar_dir);
+                closedir($avatar_dir);
 
-                //
-                // This bit of code translates the avatar directory size into human readable format
-                // Borrowed the code from the PHP.net annoted manual, origanally written by:
-                // Jesse (jesse@jess.on.ca)
-                //
+                /*
+                 * This bit of code translates the avatar directory size into human readable format
+                 * Borrowed the code from the PHP.net annoted manual, origanally written by:
+                 * Jesse (jesse@jess.on.ca)
+                 */
                 if($avatar_dir_size >= 1048576)
                 {
-                        $avatar_dir_size = round($avatar_dir_size / 1048576 * 100) / 100 . " MB";
+                  $avatar_dir_size = round($avatar_dir_size / 1048576 * 100) / 100 . " MB";
                 }
                 else if($avatar_dir_size >= 1024)
                 {
-                        $avatar_dir_size = round($avatar_dir_size / 1024 * 100) / 100 . " KB";
+                  $avatar_dir_size = round($avatar_dir_size / 1024 * 100) / 100 . " KB";
                 }
                 else
                 {
-                        $avatar_dir_size = $avatar_dir_size . " Bytes";
+                  $avatar_dir_size = $avatar_dir_size . " Bytes";
                 }
 
         }
@@ -465,12 +474,12 @@ $sql = "SELECT COUNT(user_id) AS total
                 $users_per_day = $total_users;
         }
 
-        //
-        // DB size ... MySQL only
-        //
-        // This code is heavily influenced by a similar routine
-        // in phpMyAdmin 2.2.0
-        //
+        /*
+         * DB size ... MySQL only
+         *
+         * This code is heavily influenced by a similar routine
+         * in phpMyAdmin 2.2.0
+         */
         if( preg_match("/^mysql/", SQL_LAYER) )
         {
                 $sql = "SELECT VERSION() AS mysql_version";
@@ -663,8 +672,13 @@ $sql = "SELECT VERSION() AS mysql_version";
 /*****[END]********************************************
  [ Mod:    Advanced Username Color             v1.0.5 ]
  ******************************************************/
-
-                                if( $onlinerow_reg[$i]['user_allow_viewonline'] || $userdata['user_level'] == ADMIN )
+                                if(!isset($onlinerow_reg[$i]['user_allow_viewonline']))
+								$onlinerow_reg[$i]['user_allow_viewonline'] = '';
+								
+								if(!isset($hidden_users))
+								$hidden_users = 0;
+                                
+								if( $onlinerow_reg[$i]['user_allow_viewonline'] || $userdata['user_level'] == ADMIN )
                                 {
                                         $registered_users++;
                                         $hidden = FALSE;
@@ -786,7 +800,10 @@ $sql = "SELECT VERSION() AS mysql_version";
 /*****[BEGIN]******************************************
  [ Mod:    Better Session Handling             v1.0.0 ]
  ******************************************************/
-                                $BSH = select_session_url($onlinerow_reg[$i]['session_page'], $onlinerow_reg[$i]['session_url_qs'], $onlinerow_reg[$i]['session_url_ps'], $onlinerow_reg[$i]['session_url_specific'], $userdata['user_level'], $onlinerow_reg[$i]['user_id'], $forums_data, $topics_data, $users_data, $cats_data);
+                                if(!isset($onlinerow_reg[$i]['session_page']))
+								$onlinerow_reg[$i]['session_page'] = '';
+
+								$BSH = select_session_url($onlinerow_reg[$i]['session_page'], $onlinerow_reg[$i]['session_url_qs'], $onlinerow_reg[$i]['session_url_ps'], $onlinerow_reg[$i]['session_url_specific'], $userdata['user_level'], $onlinerow_reg[$i]['user_id'], $forums_data, $topics_data, $users_data, $cats_data);
                                 $location = $BSH;
 /*****[END]********************************************
  [ Mod:    Better Session Handling             v1.0.0 ]
@@ -989,7 +1006,11 @@ $sql = "SELECT VERSION() AS mysql_version";
     define('VERSION_CHECK_DELAY', 86400);
     $now = time();
     $version_check_delay = intval($board_config['version_check_delay']);
-    if ( intval($HTTP_GET_VARS['vchk']) || empty($version_check_delay) || (($version_check_delay - $now) > VERSION_CHECK_DELAY) )
+    
+	if(!isset($HTTP_GET_VARS['vchk']))
+	$HTTP_GET_VARS['vchk'] = '';
+	
+	if ( intval($HTTP_GET_VARS['vchk']) || empty($version_check_delay) || (($version_check_delay - $now) > VERSION_CHECK_DELAY) )
     {
         if ( isset($board_config['version_check_delay']) )
         {
@@ -1017,28 +1038,28 @@ $sql = "SELECT VERSION() AS mysql_version";
     $errno = 0;
     $errstr = $version_info = '';
 
-    if ($fsock = @fsockopen('www.phpbb.com', 80, $errno, $errstr, 10))
+    if ($fsock = fsockopen('www.php-nuke-titanium.86it.us', 80, $errno, $errstr, 10))  
     {
-        @fputs($fsock, "GET /updatecheck/20x.txt HTTP/1.1\r\n");
-        @fputs($fsock, "HOST: www.phpbb.com\r\n");
-        @fputs($fsock, "Connection: close\r\n\r\n");
+        fputs($fsock, "GET /versions/20x.txt HTTP/1.1\r\n");
+        fputs($fsock, "HOST: www.php-nuke-titanium.86it.us\r\n");
+        fputs($fsock, "Connection: close\r\n\r\n"); 
 
         $get_info = false;
-        while (!@feof($fsock))
+        while (!feof($fsock))
         {
             if ($get_info)
             {
-                $version_info .= @fread($fsock, 1024);
+                $version_info .= fread($fsock, 1024);
             }
             else
             {
-                if (@fgets($fsock, 1024) == "\r\n")
+                if (fgets($fsock, 1024) == "\r\n")
                 {
                     $get_info = true;
                 }
             }
         }
-        @fclose($fsock);
+        fclose($fsock);
 
         $version_info = explode("\n", $version_info);
         $latest_head_revision = (int) $version_info[0];

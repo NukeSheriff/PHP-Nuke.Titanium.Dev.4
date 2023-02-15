@@ -39,8 +39,10 @@ if (realpath(__FILE__) == realpath($_SERVER['SCRIPT_FILENAME'])) {
 function get_user_field($field_name, $user, $is_name = false) 
 {
     global $db, $identify;
-    static $actual_user;
-    if (!$user) return NULL;
+    static $actual_user = [];
+    $data = [];
+	
+	if (!$user) return null;
 
     if ($is_name || !is_numeric($user))  
 	{
@@ -57,6 +59,9 @@ function get_user_field($field_name, $user, $is_name = false)
 	{
         $sql = "SELECT * FROM ".USERS_TABLE." WHERE $where";
         $actual_user[$user] = $db->sql_ufetchrow($sql);
+		
+		if(!isset($actual_user[$user]['user_id']))
+		$actual_user[$user]['user_id'] = 1;
         // We also put the groups data in the array.
         $result = $db->sql_query('SELECT g.group_id, 
 		                               g.group_name, 
@@ -87,6 +92,7 @@ function get_user_field($field_name, $user, $is_name = false)
         }
         return $data;
     }
+	if(isset($actual_user[$user][$field_name]))
     return $actual_user[$user][$field_name];
 }
 
@@ -102,27 +108,33 @@ function get_user_field($field_name, $user, $is_name = false)
 function get_admin_field($field_name, $admin) 
 {
     global $db, $debugger;
-    static $fields = array();
-    if (!$admin) {
-        return array();
+	//static $fields = array();
+	static $fields = [];
+
+    
+	if (!$admin) {
+      //return array();
+      return [];
     }
 
     if(!isset($fields[$admin]) || !is_array($fields[$admin])) {
-        $fields[$admin] = $db->sql_ufetchrow("SELECT * FROM "._AUTHOR_TABLE." WHERE `aid` = '" .  str_replace("\'", "''", $admin) . "'");
+        //$fields[$admin] = $db->sql_ufetchrow("SELECT * FROM "._AUTHOR_TABLE." WHERE `aid` = '" .  str_replace("\'", "''", $admin) . "'");
+        $fields[$admin] = $db->sql_ufetchrow("SELECT * FROM "._AUTHOR_TABLE." WHERE `aid` = '" .  str_replace("\'", "''", (string) $admin) . "'");
     }
 
     if($field_name == '*') {
         return $fields[$admin];
     }
     if(is_array($field_name)) {
-        $data = array();
+        //$data = array();
+        $data = [];
+
         foreach($field_name as $fld) {
             $data[$fld] = $fields[$admin][$fld];
         }
         return $data;
     }
-
-    return $fields[$admin][$field_name];
+    return $fields[$admin][$field_name] ?? '';
 }
 
 /**
@@ -155,7 +167,8 @@ function is_mod_admin($module_name='super')
     $auth_user = 0;
     if($module_name != 'super') {
         list($admins) = $db->sql_ufetchrow("SELECT `admins` FROM "._MODULES_TABLE." WHERE `title`='$module_name'");
-        $adminarray = explode(",", $admins);
+        //$adminarray = explode(",", $admins);
+		$adminarray = explode(',', $admins ?? '');
         for ($i=0, $maxi=count($adminarray); $i < $maxi; $i++) {
             if ($admdata['aid'] == $adminarray[$i] && !empty($admins)) {
                 $auth_user = 1;
@@ -302,8 +315,9 @@ function load_evoconfig()
     // mainfile.php is only loaded once. So static makes no sense
     //static $evoconfig;
     //if(isset($evoconfig) && is_array($evoconfig)) { return $evoconfig; }
-    if ((($evoconfig = $cache->load('evoconfig', 'config')) === false) || empty($evoconfig)) {
+    if ((($evoconfig = $cache->load('titanium_evoconfig', 'config')) === false) || empty($evoconfig)) {
         $evoconfig = array();
+		$wordrow = array();
         $result = $db->sql_query('SELECT `evo_field`, `evo_value` FROM '._EVOCONFIG_TABLE.' WHERE `evo_field` != "cache_data"');
         while(list($evo_field, $evo_value) = $db->sql_fetchrow($result)) {
             if($evo_field != 'cache_data') {
@@ -323,15 +337,14 @@ function load_evoconfig()
         while(list($word, $replacement) = $db->sql_fetchrow($resultwords)) {
             $wordrow[$word] = $replacement;
         }
-        $evoconfig['censor_words'] = $wordrow;
-
-        $cache->save('evoconfig', 'config', $evoconfig);
+        
+        $cache->save('titanium_evoconfig', 'config', $evoconfig);
         $db->sql_freeresult($result);
     }
     if(is_array($evoconfig)) {
         return $evoconfig;
     } else {
-        $cache->delete('evoconfig', 'config');
+        $cache->delete('titanium_evoconfig', 'config');
         $debugger->handle_error('There is an error in your evoconfig data', 'Error');
         return array();
     }
@@ -371,7 +384,7 @@ function update_modules()
     $handle=opendir(NUKE_MODULES_DIR);
     $modlist = array();
     while (false !== ($file = readdir($handle))) {
-        if ( @is_dir(NUKE_MODULES_DIR . $file) && ($file != '.') && ($file != '..') ) {
+        if ( is_dir(NUKE_MODULES_DIR . $file) && ($file != '.') && ($file != '..') ) {
             $modlist[] = $file;
         }
     }
@@ -446,7 +459,8 @@ function UpdateCookie()
         while (list($config_name, $config_value) = $db->sql_fetchrow($configresult, SQL_NUM)) 
         {
             // if (!get_magic_quotes_gpc()) { $config_value = stripslashes($config_value); }
-            $ya_config[$config_name] = $config_value;
+            //$ya_config[$config_name] = $config_value;
+			$config_value = stripslashes($config_value);
         }
         $db->sql_freeresult($configresult);
         /*****[BEGIN]******************************************
@@ -471,14 +485,14 @@ function UpdateCookie()
     $db->sql_freeresult($result);
 
     $cookiedata = base64_encode("$uid:$username:$pass:$storynum:$umode:$uorder:$thold:$noscore:$ublockon:$theme:$commentmax");
-    if ($ya_config['cookietimelife'] != '-') {
+    if (isset($ya_config['cookietimelife']) && $ya_config['cookietimelife'] != '-') {
         if (trim($ya_config['cookiepath']) != '') {
-            @setcookie('user',$cookiedata,time()+$ya_config['cookietimelife'],$ya_config['cookiepath']);
+            setcookie('user',$cookiedata,time()+$ya_config['cookietimelife'],$ya_config['cookiepath']);
         } else {
-            @setcookie('user',$cookiedata,time()+$ya_config['cookietimelife']);
+            setcookie('user',$cookiedata,time()+$ya_config['cookietimelife']);
         }
     } else {
-        @setcookie('user',$cookiedata);
+        setcookie('user',$cookiedata);
     };
 }
 
@@ -505,39 +519,6 @@ function GetColorGroups($in_admin = false)
     return $ColorGroupsCache;
 }
 
-// avatar_resize function by JeFFb68CAM (based off phpBB mod)
-// recoded & removed cache-function and added static variable (ReOrGaNiSaTiOn)
-function avatar_resize($avatar_url) 
-{
-    global $board_config;
-    static $loaded_avatars;
-    if(!isset($loaded_avatars[$avatar_url])) {
-        $loaded_avatars[$avatar_url] = array();
-        list($avatar_width, $avatar_height) = @getimagesize($avatar_url);
-        if ($avatar_width > $board_config['avatar_max_width'] && $avatar_height <= $board_config['avatar_max_height']) {
-            $cons_width  = $board_config['avatar_max_width'];
-            $cons_height = round((($board_config['avatar_max_width'] * $avatar_height) / $avatar_width), 0);
-        }
-        elseif($avatar_width <= $board_config['avatar_max_width'] && $avatar_height > $board_config['avatar_max_height']) {
-            $cons_width  = round((($board_config['avatar_max_height'] * $avatar_width) / $avatar_height), 0);
-            $cons_height = $board_config['avatar_max_height'];
-        }
-        elseif($avatar_width > $board_config['avatar_max_width'] && $avatar_height > $board_config['avatar_max_height']) {
-            if($avatar_width >= $avatar_height) {
-                $cons_width = $board_config['avatar_max_width'];
-                $cons_height = round((($board_config['avatar_max_width'] * $avatar_height) / $avatar_width), 0);
-            }
-            elseif($avatar_width < $avatar_height) {
-                $cons_width = round((($board_config['avatar_max_height'] * $avatar_width) / $avatar_height), 0);
-                $cons_height = $board_config['avatar_max_height'];
-            }
-        }
-        // $loaded_avatars[$avatar_url] = '<img src="' . $avatar_url . '" width="' . $cons_width . '" height="' . $cons_height . '" alt="" border="0" />';
-        $loaded_avatars[$avatar_url] = $avatar_url;
-    }
-    return $loaded_avatars[$avatar_url];
-}
-
 // EvoCrypt function by JeFFb68CAM
 function EvoCrypt($pass) 
 {
@@ -545,12 +526,14 @@ function EvoCrypt($pass)
 }
 
 // http://www.php.net/array_combine
+/* PHP 8 has this already
 if (!function_exists('array_combine')) 
 {
     function array_combine($keys, $values) {
         $result = array();
         if (is_array($keys) && is_array($values)) {
-            while (list(, $key) = each($keys)) {
+            while (list(, $key) = each($keys)) 
+			{
                 if (list(, $value) = each($values)) {
                     $result[$key] = $value;
                 } else {
@@ -561,16 +544,17 @@ if (!function_exists('array_combine'))
         return $result;
     }
 }
+*/
 
 // http://www.php.net/file_get_contents
 if(!function_exists('file_get_contents')) 
 {
     function file_get_contents($filename, $use_include_path = 0) {
-        $file = @fopen($filename, 'rb', $use_include_path);
+        $file = fopen($filename, 'rb', $use_include_path);
         $data = '';
         if ($file) {
             while (!feof($file)) $data .= fread($file, 1024);
-            @fclose($file);
+            fclose($file);
         }
         return $data;
     }
@@ -584,113 +568,6 @@ if(!function_exists('html_entity_decode'))
         $trans_table['&#39;'] = "'";
         return (strtr($given_html, $trans_table));
     }
-}
-
-// EvoDate function by JeFFb68CAM (based off phpBB mod)
-// Changed for internatinal users by ReOrGaNiSaTiOn
-function EvoDate($format, $gmepoch, $tz)
-{
-/*****[BEGIN]******************************************
- [ Mod:    Advanced Time Management            v2.2.0 ]
- ******************************************************/
-    global $board_config, $lang, $userdata, $pc_dateTime, $userinfo;
-	getusrinfo();
-	static $translate;
-	    if ( empty($translate) && $board_config['default_lang'] != 'english' )
-    {
-    		@include(NUKE_FORUMS_DIR.'language/lang_'.$lang.'/lang_time.php');
-    		if (!(empty($langtime['datetime'])))
-    		{
-        	while ( list($match, $replace) = @each($langtime['datetime']) )
-        	{
-            $translate[$match] = $replace;
-        	}
-        }
-    }
-	if ( $userinfo['user_id'] != 1 )
-	{
-		switch ( $userinfo['user_time_mode'] )
-		{
-			case 1:
-				$dst_sec = $userinfo['user_dst_time_lag'] * 60;
-				return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz) + $dst_sec), $translate) : @gmdate($format, $gmepoch + (3600 * $tz) + $dst_sec);
-				break;
-			case 2:
-				$dst_sec = date('I', $gmepoch) * $userdata['user_dst_time_lag'] * 60;
-				return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz) + $dst_sec), $translate) : @gmdate($format, $gmepoch + (3600 * $tz) + $dst_sec);
-				break;
-			case 3:
-				return ( !empty($translate) ) ? strtr(@date($format, $gmepoch), $translate) : @date($format, $gmepoch);
-				break;
-			case 4:
-				if ( isset($pc_dateTime['pc_timezoneOffset']) )
-				{
-					$tzo_sec = $pc_dateTime['pc_timezoneOffset'];
-				} else
-				{
-					$user_pc_timeOffsets = explode("/", $userinfo['user_pc_timeOffsets']);
-					$tzo_sec = $user_pc_timeOffsets[0];
-				}
-				return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + $tzo_sec), $translate) : @gmdate($format, $gmepoch + $tzo_sec);
-				break;
-			case 6:
-				if ( isset($pc_dateTime['pc_timeOffset']) )
-				{
-					$tzo_sec = $pc_dateTime['pc_timeOffset'];
-				} else
-				{
-					$user_pc_timeOffsets = explode("/", $userinfo['user_pc_timeOffsets']);
-					$tzo_sec = $user_pc_timeOffsets[1];
-				}
-				return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + $tzo_sec), $translate) : @gmdate($format, $gmepoch + $tzo_sec);
-				break;
-			default:
-				return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz)), $translate) : @gmdate($format, $gmepoch + (3600 * $tz));
-				break;
-		}
-	} else
-	{
-		switch ( $board_config['default_time_mode'] )
-		{
-			case 1:
-				$dst_sec = $board_config['default_dst_time_lag'] * 60;
-				return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz) + $dst_sec), $translate) : @gmdate($format, $gmepoch + (3600 * $tz) + $dst_sec);
-				break;
-			case 2:
-				$dst_sec = date('I', $gmepoch) * $board_config['default_dst_time_lag'] * 60;
-				return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz) + $dst_sec), $translate) : @gmdate($format, $gmepoch + (3600 * $tz) + $dst_sec);
-				break;
-			case 3:
-				return ( !empty($translate) ) ? strtr(@date($format, $gmepoch), $translate) : @date($format, $gmepoch);
-				break;
-			case 4:
-				if ( isset($pc_dateTime['pc_timezoneOffset']) )
-				{
-					$tzo_sec = $pc_dateTime['pc_timezoneOffset'];
-				} else
-				{
-					$tzo_sec = 0;
-				}
-				return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + $tzo_sec), $translate) : @gmdate($format, $gmepoch + $tzo_sec);
-				break;
-			case 6:
-				if ( isset($pc_dateTime['pc_timeOffset']) )
-				{
-					$tzo_sec = $pc_dateTime['pc_timeOffset'];
-				} else
-				{
-					$tzo_sec = 0;
-				}
-				return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + $tzo_sec), $translate) : @gmdate($format, $gmepoch + $tzo_sec);
-				break;
-			default:
-				return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz)), $translate) : @gmdate($format, $gmepoch + (3600 * $tz));
-				break;
-		}
-	}
-/*****[END]********************************************
- [ Mod:    Advanced Time Management            v2.2.0 ]
- ******************************************************/
 }
 
 // evo_timetohours function by ReOrGaNiSaTiOn
@@ -849,6 +726,13 @@ function select_box($name, $default, $options, $multiple=false, $conditions=arra
 function yesno_option($name, $value=0, $dropdown=false) 
 {
     $value = ($value>0) ? 1 : 0;
+	
+	if(!isset($sel[0]))
+	$sel[0] = 0;
+
+	if(!isset($sel[1]))
+	$sel[1] = 1;
+	
     if($dropdown == false):
         $sel[$value] = ' checked="checked"';
         $return  = '<input type="radio" name="'.$name.'" id="'.$name.'_yes" value="1"'.$sel[1].' />&nbsp;<label for="'.$name.'_yes">'._YES.'</label>&nbsp;&nbsp;';
@@ -1125,34 +1009,20 @@ function GetRank($user_id)
     return array();
 }
 
-// redirect function by Quake
+# redirect function by Quake
 function redirect($url, $refresh = 0) 
 {
-    global $db, $cache;
+    global $db, $db2, $cache;
     if(is_object($cache)) $cache->resync();
     if(is_object($db)) $db->sql_close();
-    $type = preg_match('/IIS|Microsoft|WebSTAR|Xitami/', $_SERVER['SERVER_SOFTWARE']) ? 'Refresh: '.$refresh.'; URL=' : 'Location: ';
+	if(is_object($db2)) $db2->sql_close();
+	$type = preg_match('/IIS|Microsoft|WebSTAR|Xitami/', (string) $_SERVER['SERVER_SOFTWARE']) ? 'Refresh: '.$refresh.'; URL=' : 'Location: ';
 	$url = str_replace('&amp;', "&", $url);
     header($type . $url);
     exit;
 }
 
 include_once(NUKE_INCLUDE_DIR.'functions_deprecated.php');
-
-function evo_img_tag_to_resize($text) 
-{
-    global $img_resize;
-    if(!$img_resize) return $text;
-    if(empty($text)) return $text;
-    if(preg_match('/<NO RESIZE>/',$text)) {
-        $text = str_replace('<NO RESIZE>', '', $text);
-        return $text;
-    }
-    // $text = preg_replace('/<\s*?img/',"<img resizemod=\"on\" ",$text);
-    # <div class="reimg-loading"></div><img class="reimg" onload="reimg(this);" onerror="reimg(this);"
-    $text = preg_replace('/<\s*?img/',"<div class=\"reimg-loading\"></div><img class=\"reimg\" onload=\"reimg(this);\" onerror=\"reimg(this);\" ",$text);
-    return $text;
-}
 
 function referer() 
 {
@@ -1184,7 +1054,7 @@ function referer()
 function ord_crypt_decode($data) 
 {
     $result = '';
-    $data =  @pack("H" . strlen($data), $data);
+    $data =  pack("H" . strlen($data), $data);
 
     for($i=0; $i<strlen($data); $i++) {
         $char = substr($data, $i, 1);
@@ -1212,20 +1082,26 @@ function add_group_attributes($user_id, $group_id)
         $row_color = $db->sql_fetchrow($result_color);
         $db->sql_freeresult($result_color);
     }
-    $sql_rank = "SELECT `group_rank` FROM `" . $prefix . "_bbgroups` WHERE `group_id` = '$group_id'";
+    
+	$sql_rank = "SELECT `group_rank` FROM `" . $prefix . "_bbgroups` WHERE `group_id` = '$group_id'";
     $result_rank = $db->sql_query($sql_rank);
     $row_rank = $db->sql_fetchrow($result_rank);
     $db->sql_freeresult($result_rank);
     if(isset($row_rank['group_rank']) && !isset($row_color['group_color'])) {
         $sql = "`user_rank` = '".$row_rank['group_rank']."'";
-    }elseif(isset($row_color['group_color']) && !isset($row_rank['group_rank'])) {
+    }
+	elseif(isset($row_color['group_color']) && !isset($row_rank['group_rank'])) 
+	{
         $sql = "`user_color_gc` = '".$row_color['group_color']."',
               `user_color_gi`  = '--".$row_color['group_id']."--'";
-    } elseif (isset($row_color['group_color']) && isset($row_rank['group_rank'])) {
+    } 
+	elseif (isset($row_color['group_color']) && isset($row_rank['group_rank'])) {
         $sql = "`user_rank` = '".$row_rank['group_rank']."',
             `user_color_gc` = '".$row_color['group_color']."',
             `user_color_gi`  = '--".$row_color['group_id']."--'";
-    } else {
+    } 
+	else 
+	{
         $sql = "";
     }
 
@@ -1276,23 +1152,27 @@ function amp_replace($string)
     return $string;
 }
 
-function evo_site_up($url) 
+function web_site_up($url) 
 {
-    //Set the address
+    # Set the address
     $address = parse_url($url);
     $host = $address['host'];
-    if (!($ip = @gethostbyname($host))) return false;
-    if (@fsockopen($host, 80, $errno, $errdesc, 10) === false) return false;
-    return true;
+    
+	if(!($ip = gethostbyname($host))): 
+	  return false;
+	endif;
+    
+	if(fsockopen($host, 80, $errno, $errdesc, 10) === false): 
+	  return false;
+	endif;
+    
+	return true;
 }
 
 function evo_mail($to, $subject, $content, $header='', $params='', $batch=false) 
 {
     global $board_config, $nukeconfig, $cache;
 	
-	// Include the swift class
-    require_once(NUKE_INCLUDE_DIR.'mail/swift_required.php');
-
     if (empty($to)) return false;
 	
 	// Set the from email
@@ -1311,11 +1191,14 @@ function evo_mail($to, $subject, $content, $header='', $params='', $batch=false)
     $content = str_replace("\n", "<br />", $content);
 	
 	// Set the message vars
-	$message = Swift_Message::newInstance()
+	$message = (new Swift_Message())
 		->setSubject($subject)
 		->setFrom($from)
 		->setTo($to)
-		->setBody($content, 'text/html');
+		->setBody($content)
+		->addPart($content, 'text/html') # Without this line gmail will not process <br> etc.
+		//->attach(Swift_Attachment::fromPath('my-document.pdf')) # if we wanted to sebd along a file with rules for whatever etc.
+		;
 	
 	// SMTP mail
 	if (isset($board_config['smtp_delivery']) && $board_config['smtp_delivery'] == '1'){
@@ -1331,24 +1214,22 @@ function evo_mail($to, $subject, $content, $header='', $params='', $batch=false)
 				$smtp['port'] = 25;
 			}
 			
-			$smtp = Swift_SmtpTransport::newInstance($smtp['host'], $smtp['port']);
-			
-			// Set the username and password
-			$smtp->setUsername($board_config['smtp_username']);
-            $smtp->setpassword($board_config['smtp_password']);
+			$smtp = (new Swift_SmtpTransport($smtp['host'], $smtp['port']))
+            ->setUsername($board_config['smtp_username'])
+            ->setPassword($board_config['smtp_password'])
+            ;
 			
 			// Set a new mailer class to send the message
-			$mailer = Swift_Mailer::newInstance($smtp);
+			$mailer = new Swift_Mailer($smtp);
 			
 			// Now send the message
 			$sent = $mailer->send($message);
 		}
 	} else { 
 		// Create a new mail transport
-		$transport = Swift_MailTransport::newInstance();
-		
+		$transport = new Swift_SendmailTransport('/usr/sbin/sendmail -bs');
 		// Create the mailer gateway
-		$mailer = Swift_Mailer::newInstance($transport);
+		$mailer = new Swift_Mailer($transport);
 		
 		// Standard method for sending mail
 		if ($batch && is_object($to)){
@@ -1361,147 +1242,13 @@ function evo_mail($to, $subject, $content, $header='', $params='', $batch=false)
     return $sent;
 }
 
+//this is only used in the Admin News Letter Module
 function evo_mail_batch($array_recipients)
 {
-	// Include the swift class
-    require_once(NUKE_INCLUDE_DIR.'mail/swift_required.php');
-
     if (!is_array($array_recipients)) return '';
-
-    $recipients = Swift_Message::newInstance();
+	$recipients = (new Swift_Message('PHP-Nuke Titanium'));
     foreach ($array_recipients as $username => $email){
         $recipients->addTo($email, $username);
     }
     return $recipients;
 }
-
-// evo_image function by ReOrGaNiSaTiOn
-function evo_image($imgfile='', $mymodule='') 
-{
-    global $currentlang, $ThemeSel, $Default_Theme, $cache;
-    $tmp_imgfile = explode('.', $imgfile);
-    $cache_imgfile = $tmp_imgfile[0];
-    $evoimage = $cache->load($mymodule, 'EvoImage');
-    if(!empty($evoimage[$ThemeSel][$currentlang][$cache_imgfile])) {
-        return($evoimage[$ThemeSel][$currentlang][$cache_imgfile]);
-    }
-
-    if (@file_exists('themes/'. $ThemeSel . '/images/' . $mymodule . '/lang_' . $currentlang . '/' . $imgfile)) {
-        $evoimage[$ThemeSel][$currentlang][$cache_imgfile] = 'themes/'.$ThemeSel."/images/$mymodule/lang_".$currentlang."/$imgfile";
-    } elseif (@file_exists('themes/'. $ThemeSel . '/images/lang_' . $currentlang . '/' . $imgfile)) {
-        $evoimage[$ThemeSel][$currentlang][$cache_imgfile] = 'themes/'.$ThemeSel."/images/lang_".$currentlang."/$imgfile";
-    } elseif (@file_exists('themes/'. $ThemeSel . '/images/' . $mymodule . '/' . $imgfile)) {
-        $evoimage[$ThemeSel][$currentlang][$cache_imgfile] = 'themes/'.$ThemeSel."/images/$mymodule/$imgfile";
-    } elseif (@file_exists('themes/'. $ThemeSel . '/images/' . $imgfile)) {
-        $evoimage[$ThemeSel][$currentlang][$cache_imgfile] = 'themes/'.$ThemeSel."/images/$imgfile";
-    } elseif (@file_exists('themes/'. $Default_Theme . '/images/' . $mymodule . '/lang_' . $currentlang . '/' . $imgfile)) {
-        $evoimage[$ThemeSel][$currentlang][$cache_imgfile] = 'themes/'.$Default_Theme."/images/$mymodule/lang_".$currentlang."/$imgfile";
-    } elseif (@file_exists('themes/'. $Default_Theme . '/images/lang_' . $currentlang . '/' . $imgfile)) {
-        $evoimage[$ThemeSel][$currentlang][$cache_imgfile] = 'themes/'.$Default_Theme."/images/lang_".$currentlang."/$imgfile";
-    } elseif (@file_exists('themes/'. $Default_Theme . '/images/' . $mymodule . '/' . $imgfile)) {
-        $evoimage[$ThemeSel][$currentlang][$cache_imgfile] = 'themes/'.$Default_Theme."/images/$mymodule/$imgfile";
-    } elseif (@file_exists('themes/'. $Default_Theme . '/images/' . $imgfile)) {
-        $evoimage[$ThemeSel][$currentlang][$cache_imgfile] = 'themes/'.$Default_Theme."/images/$imgfile";
-    } elseif (@file_exists('modules/'.  $mymodule . '/images/lang_' . $currentlang . '/' . $imgfile)) {
-        $evoimage[$ThemeSel][$currentlang][$cache_imgfile] = 'modules/'.  $mymodule ."/images/lang_".$currentlang."/$imgfile";
-    } elseif (@file_exists('modules/'.  $mymodule . '/images/' . $imgfile)) {
-        $evoimage[$ThemeSel][$currentlang][$cache_imgfile] =  'modules/'. $mymodule ."/images/$imgfile";
-    } elseif (@file_exists(NUKE_IMAGES_DIR . $mymodule . '/' . $imgfile)) {
-        $evoimage[$ThemeSel][$currentlang][$cache_imgfile] = NUKE_IMAGES_BASE_DIR . $mymodule ."/$imgfile";
-    } elseif (@file_exists(NUKE_IMAGES_DIR . $imgfile)) {
-        $evoimage[$ThemeSel][$currentlang][$cache_imgfile] = NUKE_IMAGES_BASE_DIR . $imgfile;
-    } else {
-        $evoimage[$ThemeSel][$currentlang][$cache_imgfile] = '';
-    }
-    $cache->save($mymodule, 'EvoImage', $evoimage);
-    return($evoimage[$ThemeSel][$currentlang][$cache_imgfile]);
-
-}
-
-// evo_image_make_tag function by ReOrGaNiSaTiOn
-function evo_image_make_tag($imgname, $mymodule_name, $mytitle='', $myborder=0, $myname='', $resize=FALSE , $mywidth='100%', $myheight='100%') 
-{
-    $temp_alttext = explode('.', $imgname);
-    $temp_image = evo_image($imgname, $mymodule_name);
-    if (!empty($temp_image)) {
-        $imgfile = '<img src="'.$temp_image.'" width="'.$mywidth.'" height="'.$myheight.'" border="'.$myborder.'" title="'.$mytitle.'" name="'.$myname.'" alt="" />';
-        if ( $resize ) 
-		{
-            $imgfile = evo_img_tag_to_resize($imgfile);
-        }
-        return $imgfile;
-    }
-    return '';
-}
-
-// evo_help_img function by ReOrGaNiSaTiOn
-// based on various codefragments from Internet
-function evo_help_img($helptext) 
-{
-    global $bgcolor1, $bgcolor2, $textcolor1, $textcolor2;
-    return "<a href=\"javascript:void(0);\" onclick=\"return overlib('".addslashes($helptext)."', STICKY, CAPTION, 'Help System', STATUS, 'Help System', WIDTH, 400, FGCOLOR, '".$bgcolor1."', BGCOLOR, '".$bgcolor2."', TEXTCOLOR, '".$textcolor1."', CAPCOLOR, '".$textcolor2."', CLOSECOLOR, '".$textcolor2."', CAPICON, 'images/evo/helpicon.png', BORDER, '2');\"><img src='images/evo/helpicon.png' border='0' height='12' width='12' alt='' title='' /></a>";
-}
-
-// select_gallery function by ReOrGaNiSaTiOn
-function select_gallery($name='default', $gallery='', $img_show = FALSE, $selected='') 
-{
-    if (empty($gallery)) {
-        $select = '<select class="set" name="'.$name.'" id="'.$name."\">\n";
-        $select .= "<option value=\"".FALSE."\" >"._NONE."</option>\n";
-        return $select.'</select>';
-    }
-    if ( substr($gallery, 0, 1) == '/' ) {
-        $gallery = substr($gallery, 1);
-    }
-    if ( substr($gallery, -1) == '/' ) {
-        $gallery = substr($gallery, 0, strlen($gallery) -1);
-    }
-    $dir = NUKE_BASE_DIR . $gallery;
-    $href_dir = NUKE_HREF_BASE_DIR . $gallery;
-    if (is_dir($dir)) {
-        if (!defined('GALLERY_JAVASCRIPT') && ($img_show == TRUE)) {
-            $select = '<script language="javascript" type="text/javascript">
-                        <!--
-                        function update_gallery(newimage)
-                        {
-                            document.gallery_image.src = newimage;
-                        }
-                        //-->
-                        </script>';
-            define('GALLERY_JAVASCRIPT', TRUE);
-        }
-        $opendir = @opendir($gallery);
-        if ( $img_show == TRUE ) {
-            $select .= '<select class="set" name="'.$name.'" id="'.$name."\" onchange=\"update_gallery(this.options[selectedIndex].value);\">\n";
-        } else {
-            $select .= '<select class="set" name="'.$name.'" id="'.$name."\">\n";
-        }
-        if ( empty($selected)) {
-            $select .= "<option value=\"". NUKE_IMAGES_BASE_DIR . "evo/spacer.gif\" selected=\"selected\">"._NONE."</option>\n";
-        } else {
-            $select .= "<option value=\"". NUKE_IMAGES_BASE_DIR . "evo/spacer.gif\" >"._NONE."</option>\n";
-        }
-        while (false !== ($entry = @readdir($opendir))) {
-            if( preg_match('/(\.gif$|\.png$|\.jpg|\.jpeg)$/is', $entry)) {
-                if( $entry != '.' && $entry != '..' && is_file($dir . '/' . $entry) && !is_link($dir . '/' . $entry) ) {
-                    $extension = substr($entry, strrpos($entry, '.'));
-                    if ($selected == "$href_dir/$entry") {
-                        $select .= "<option value=\"" . $href_dir . "/" .$entry."\" selected=\"selected\">".str_replace($extension, '', $entry)."</option>\n";
-                    } else {
-                        $select .= "<option value=\"" . $href_dir . "/" .$entry."\" >".str_replace($extension, '', $entry)."</option>\n";
-                    }
-                }
-            }
-        }
-        @closedir($dir);
-    } else {
-        $select = '<select class="set" name="'.$name.'" id="'.$name."\">\n";
-        $select .= "<option value=\"".FALSE."\" >"._NONE."</option>\n";
-    }
-    if ( $img_show == TRUE ) {
-        return $select.'</select>&nbsp;<img name="gallery_image" src="'.NUKE_IMAGES_BASE_DIR . 'evo/spacer.gif" border="0" alt="" />';
-    } else {
-        return $select.'</select>';
-    }
-}
-?>

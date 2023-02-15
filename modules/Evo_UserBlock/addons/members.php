@@ -1,29 +1,32 @@
 <?php
 /*=======================================================================
- PHP-Nuke Titanium v3.0.0 : Enhanced PHP-Nuke Web Portal System
+ PHP-Nuke Titanium : Nuke-Evolution | Enhanced and Advnanced
  =======================================================================*/
 
 /************************************************************************
-   Nuke-Evolution: Server Info Administration
+   Nuke-Evolution    : Server Info Administration
+   PHP-Nuke Titanium : Server Info Administration
    ============================================
    Copyright (c) 2005 by The Nuke-Evolution Team
+   Copyright (c) 2022 by The PHP-Nuke Titanium Group
 
-   Filename      : members.php
-   Author(s)     : Technocrat (www.Nuke-Evolution.com)
-   Version       : 1.0.0
+   Filename      : avatar.php
+   Author(s)     : Ernest Allen Buffington, Technocrat
+   Version       : 4.0.3
    Date          : 05.19.2005 (mm.dd.yyyy)
-
+   Last Update   : 12.12.2022 (mm.dd.yyyy)
+   
    Notes         : Evo User Block Members Module
 ************************************************************************/
 
-if(!defined('NUKE_EVO')) {
-   die ("Illegal File Access");
-}
+if(!defined('NUKE_EVO')):
+  die("Illegal File Access");
+endif;
 
 global $evouserinfo_addons, $evouserinfo_members;
 
 # group memberships
-function evouserinfo_members () 
+function evouserinfo_members() 
 {
     global $userinfo, $db, $prefix, $user_prefix, $evouserinfo_members, $lang_evo_userblock;
     
@@ -40,7 +43,7 @@ function evouserinfo_members ()
     
 	      if(!empty($name))
 		  {
-		    $group_name = GroupColor($name);
+			$group_name = GroupColor($name);
 			$evouserinfo_members .= '<div style="padding-left: 10px;">';
 		    $evouserinfo_members .= '<font title="'.$id1.'" class="tooltip-html-side-interact tooltipstered" 
 			color="lime"><i title="'.$id1.'" alt="'.$id1.'" class="fas fa-users"></i></font> ';
@@ -78,7 +81,7 @@ function evouserinfo_members ()
 	   if ($db->sql_numrows($result)) 
 	   {
 
-	      $evouserinfo_members .= '<div style="font-weight: bold">'.$lang_evo_userblock['BLOCK']['MEMBERS']['PENDING'].'</div>'; 
+	      $evouserinfo_members .= '<div style="font-weight: bold">'.isset($lang_evo_userblock['BLOCK']['MEMBERS']['PENDING']).'</div>'; 
        
 	      while( $row = $db->sql_fetchrow($result) ) 
 		  {
@@ -88,8 +91,7 @@ function evouserinfo_members ()
 		    $evouserinfo_members .= '<div style="padding-left: 10px;">';
 			$evouserinfo_members .= '<font title="'.$row['group_id'].'" class="tooltip-html-side-interact tooltipstered" 
 			color="lightgrey"><i title="'.$row['group_id'].'" alt="'.$row['group_id'].'" class="fas fa-users"></i></font> ';
-		    $evouserinfo_members .= '<a class="tooltip-html-side-interact tooltipstered" title="'.$row['group_name'].'" 
-			href="modules.php?name=Groups&amp;g='.$row['group_id'] . '"><strong>' . $group_name . '</strong></a><br />';
+		    $evouserinfo_members .= '<a class="tooltip-html-side-interact tooltipstered" title="'.$row['group_name'].'"href="modules.php?name=Groups&amp;g='.$row['group_id'] . '"><strong>' . $group_name . '</strong></a><br />';
 			$evouserinfo_members .= '</div>';
           }
         
@@ -99,10 +101,10 @@ function evouserinfo_members ()
    }
 }
 
-if (is_user()):
-    evouserinfo_members();
+if(is_user()):
+  evouserinfo_members();
 else:
-    $evouserinfo_members = '';
+  $evouserinfo_members = '';
 endif;
-?>
 
+?>

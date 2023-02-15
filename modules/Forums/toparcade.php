@@ -24,7 +24,7 @@ if (!defined('MODULE_FILE')) {
     die('You can\'t access this file directly...');
 }
 
-if ($popup != "1"){
+if (!isset($popup)){
     $module_name = basename(dirname(__FILE__));
     require("modules/".$module_name."/nukebb.php");
 }
@@ -120,6 +120,32 @@ while ((!$fini) ) {
                                 'GAMENAME' => '<nobr><a class="cattitle" href="' . append_sid("games.$phpEx?gid=" . $row['game_id']) . '">' . $row['game_name'] . '</a></nobr>')
                         );
 
+		$row2['trophy'] = '';
+		
+		if(!isset($row2['score_game']))
+		$row2['score_game'] = 0;
+		
+		if($row2['score_game'] == 1)
+		$row2['trophy'] = 'st';
+		if($row2['score_game'] == 2)
+		$row2['trophy'] = 'nd';
+		if($row2['score_game'] == 3)
+		$row2['trophy'] = 'rd';
+		if($row2['score_game'] == 4)
+		$row2['trophy'] = 'th';
+		if($row2['score_game'] == 5)
+		$row2['trophy'] = 'th';
+		if($row2['score_game'] == 6)
+		$row2['trophy'] = 'rd';
+		if($row2['score_game'] == 7)
+		$row2['trophy'] = 'th';
+		if($row2['score_game'] == 8)
+		$row2['trophy'] = 'th';
+		if($row2['score_game'] == 9)
+		$row2['trophy'] = 'th';
+		if($row2['score_game'] == 10)
+		$row2['trophy'] = 'th';
+		
                         $pos = 0;
                         $posreelle = 0;
                         $lastscore = 0;
@@ -129,15 +155,20 @@ while ((!$fini) ) {
                                 message_die(GENERAL_ERROR, "Could not read from the scores/users tables", '', __LINE__, __FILE__, $sql);
                         }
 
-                        while($row2 = $db->sql_fetchrow($result2)) {
+						while($row2 = $db->sql_fetchrow($result2)) {
                                 $posreelle++;
 
                                 if ($lastscore != $row2['score_game']) {
                                         $pos = $posreelle;
                                 }
                                 $lastscore = $row2['score_game'];
+
+                                if(!isset($row2['trophy']))
+						        $row2['trophy'] = '';
+
                                 $template->assign_block_vars('blkligne.blkcolonne.blkgame.blkscore', array(
                                         'SCORE' => number_format($row2['score_game']),
+										'TROPHY' => $row2['trophy'],
 /*****[BEGIN]******************************************
  [ Mod:    Advanced Username Color             v1.0.5 ]
  ******************************************************/
@@ -155,6 +186,9 @@ while ((!$fini) ) {
                 }
         }
 }
+
+if(!isset($uid))
+$uid = '';
 
 $template->assign_vars(array(
         'PAGINATION' => generate_pagination(append_sid("toparcade.$phpEx?uid=$uid"), $total_games, $games_par_page, $start),

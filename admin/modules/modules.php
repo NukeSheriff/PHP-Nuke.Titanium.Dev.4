@@ -23,7 +23,7 @@ function modadmin_get_modules ($mid = '')
 
     $mid = (!empty($mid)) ? 'WHERE mid='.$mid : '';
 
-    if(!$result = $db->sql_query("SELECT `mid`, `title`, `custom_title`, `active`, `view`, `inmenu`, `blocks`, `groups` FROM `".$prefix."_modules` $mid ORDER BY `mid` ASC")) 
+    if(!$result = $db->sql_query("SELECT `mid`, `title`, `custom_title`, `active`, `view`, `inmenu`, `blocks`, `groups` FROM `".$prefix."_modules` $mid ORDER BY `title` ASC")) 
     DisplayError($admlang['modblock']['no_values']);
 
     if (!$out = $db->sql_fetchrowset($result)) 
@@ -93,7 +93,10 @@ function modadmin_dispaly_modules($modadmin_modules)
    echo '<td class="catHead" colspan="7">-= '.$admlang['global']['warning'].' =-</td>';
    echo '</tr>';
    echo '<tr>';
-   echo '<td class="row1" style="letter-spacing: 1px; line-height: 22px;" colspan="7">'.$admlang['modules']['warn'].'<br /><br />[ <a href="'.$admin_file.'.php?op=modules&amp;area=block">'.$admlang['modules']['block'].'</a> ]</td>';
+   
+   echo '<td class="row1" style="letter-spacing: 1px; line-height: 22px;" 
+   colspan="7">'.$admlang['modules']['warn'].'<br /><br />[ <a href="'.$admin_file.'.php?op=modules&amp;area=block">'.$admlang['modules']['block'].'</a> ]</td>';
+   
    echo '</tr>';
    echo '<tr>';
    echo '<td class="catHead" style="width: 10%;">'.$admlang['global']['active'].'</td>';
@@ -114,14 +117,14 @@ function modadmin_dispaly_modules($modadmin_modules)
 
       # Fixed by TheGhost 3/26/2021
 	  # this boggled my mind years ago, I added this to remove the .. module that did not really exists!
-	  # do not pase the index as a module in the moodules list
+	  # do not place the index as a module in the moodules list
       if(substr($module['title'],0,2) == '..') 
       {
          continue;
       }
 
       # Fixed by TheGhost 3/26/2021
-      # this boggled my miond years ago, I added this to remove the .. module that did not really exists!
+      # this boggled my mind years ago, I added this to remove the .. index.html!
 	  # allow an index.html in the root of the modules folder
       if(substr($module['title'],0,10) == 'index.html') 
       {
@@ -129,14 +132,17 @@ function modadmin_dispaly_modules($modadmin_modules)
       }
 
       # Fixed by TheGhost 3/26/2021
-	  # this boggled my miond years ago, I added this to remove the .. module that did not really exists!
+	  # this boggled my mind years ago, I added this to remove the Evo_UserBlock module that did not need to exist in the list!
 	  # Remove Evo User Block from modules list!
       if(substr($module['title'],0,13) == 'Evo_UserBlock') 
       {
          continue;
       }
-
-      # lis the top header information
+	  
+	  if(!isset($who_view))
+	  $who_view = null;
+	  
+      # list the top header information
       if($module['title'] == $main_module) 
       {
          $home       = get_evo_icon('evo-sprite home', $admlang['modules']['inhome']);
@@ -147,8 +153,11 @@ function modadmin_dispaly_modules($modadmin_modules)
 	  else 
 	  {
          $home       = '<a href="'.$admin_file.'.php?op=modules&amp;h='.$module['mid'].'">'.get_evo_icon('evo-sprite cancel', $admlang['global']['inactive']).'</a>';
-         $active     = (intval($module['active'])) ? '<a href="'.$admin_file.'.php?op=modules&amp;a='.$module['mid'].'">'.get_evo_icon('evo-sprite ok', $admlang['global']['active']).'</a>' : '<a href="'.$admin_file.'.php?op=modules&amp;a='.$module['mid'].'">'.get_evo_icon('evo-sprite cancel', $admlang['global']['inactive']).'</a>';
-         $title      =  (!intval($module['inmenu'])) ? "[&nbsp;<big><strong>&middot;</strong></big>&nbsp;]&nbsp;".$module['title'] : $module['title'];
+         
+		 $active     = (intval($module['active'])) ? '<a href="'.$admin_file.'.php?op=modules&amp;a='.$module['mid'].'">'.get_evo_icon('evo-sprite ok', $admlang['global']['active']).'</a>' : '<a 
+		 href="'.$admin_file.'.php?op=modules&amp;a='.$module['mid'].'">'.get_evo_icon('evo-sprite cancel', $admlang['global']['inactive']).'</a>';
+         
+		 $title      =  (!intval($module['inmenu'])) ? "[&nbsp;<big><strong>&middot;</strong></big>&nbsp;]&nbsp;".$module['title'] : $module['title'];
       }
 
       if(isset($module['blocks'])) 
@@ -217,6 +226,7 @@ function modadmin_edit_module($module)
          $ingroups = explode('-', $module['groups']);
          break;
    }
+   
    OpenTable();
    if(substr($module['title'],0,3) != '~l~') 
    {
@@ -238,6 +248,7 @@ function modadmin_edit_module($module)
       echo '<tr>';
       echo '<td class="row1" style="width: 50%;">'.$admlang['global']['who_view'].'</td>';
       echo '<td class="row1" style="width: 50%;">';
+   
       if($module['title'] == $main_module || $module['title'] == 'Your_Account' || $module['title'] == 'Profile') 
       {
          echo '<input type="hidden" name="view" value="0" />';
@@ -246,16 +257,17 @@ function modadmin_edit_module($module)
       {
          echo '<br /><strong>'.$admlang['global']['who_view'].'</strong><br />';
          echo '<select name="view" style="cursor: pointer; font-size: 11px !important; font-family: Verdana,Geneva,Arial,Helvetica,sans-serif; letter-spacing: 1px; margin: 0px 1px 1px; padding: 5px;">';
-         echo '<option value="1" '.$o1.'>'.$admlang['global']['all_visitors'].'</option>';
-         echo '<option value="2" '.$o2.'>' . $admlang['global']['guests_only'].'</option>';
-         echo '<option value="3" '.$o3.'>' . $admlang['global']['users_only'].'</option>';
-         echo '<option value="4" '.$o4.'>' . $admlang['global']['admins_only'].'</option>';
-         echo '<option value="6" '.$o6.'>'.$admlang['global']['groups_only'].'</option>';
+         echo '<option value="1" '.$o1.'>' . $admlang['global']['all_visitors'] .'</option>';
+         echo '<option value="2" '.$o2.'>' . $admlang['global']['guests_only'] .'</option>';
+         echo '<option value="3" '.$o3.'>' . $admlang['global']['users_only'] .'</option>';
+         echo '<option value="4" '.$o4.'>' . $admlang['global']['admins_only'] .'</option>';
+         echo '<option value="6" '.$o6.'>' . $admlang['global']['groups_only'] .'</option>';
          echo '</select><br />';
 
-         echo "<span class='tiny'>"._WHATGRDESC."</span><br /><br /><strong>"._WHATGROUPS."</strong><br /> <select name='add_groups[]' style=\"cursor: pointer; font-size: 11px !important; font-family: Verdana,Geneva,Arial,Helvetica,sans-serif; letter-spacing: 1px; margin: 0px 1px 1px; padding: 5px;\" multiple size='5'>\n";
+         echo "<span class='tiny'>"._WHATGRDESC."</span><br /><br /><strong>"._WHATGROUPS."</strong><br /> <select name='add_groups[]' style=\"cursor: pointer; 
+		 font-size: 11px !important; font-family: Verdana,Geneva,Arial,Helvetica,sans-serif; letter-spacing: 1px; margin: 0px 1px 1px; padding: 5px;\" multiple size='5'>\n";
             
-			$groupsResult = $db->sql_query("select group_id, group_name from ".$prefix."_bbgroups where group_description <> 'Personal User'");
+			$groupsResult = $db->sql_query("SELECT group_id, group_name FROM ".$prefix."_bbgroups WHERE group_description <> 'Personal User'");
             
 			while(list($gid, $gname) = $db->sql_fetchrow($groupsResult)) 
 			{
@@ -268,7 +280,7 @@ function modadmin_edit_module($module)
 				   $sel = ""; 
 				}
                 
-				echo "<OPTION VALUE='$gid'$sel>$gname</option>\n";
+				echo "<option value='$gid'$sel>$gname</option>\n";
             }
             
 			echo "</select><br /><br />\n";
@@ -366,7 +378,10 @@ function modadmin_edit_save($mid)
 {
    global $prefix, $db, $admin_file, $cache;
    
-   $ingroups = array();
+   $title = null;
+   
+   if(!isset($ingroups))
+   $ingroups = null;
    
    if($_POST['view'] == 6) 
    {
@@ -381,16 +396,16 @@ function modadmin_edit_save($mid)
    if(isset($_POST['link'])) 
    {
       Validate($_POST['custom_title'], 'url', 'modules');
-      $view = intval($_POST['view']);
+	  $view = (int) $_POST['view'];
       $title = '~l~'.Fix_Quotes($_POST['title']);
       $custom_title = Fix_Quotes($_POST['custom_title']);
       $db->sql_query("UPDATE `".$prefix."_modules` SET `custom_title`='$custom_title', `title`='$title', `view`=$view, `groups`='$ingroups' WHERE `mid`=$mid");
    } 
    else 
    {
-      $view = intval($_POST['view']);
-      $inmenu = intval($_POST['inmenu']);
-      $blocks = intval($_POST['blocks']);
+      $view = (int) $_POST['view'];
+      $inmenu = (int) $_POST['inmenu'];
+      $blocks = (int) $_POST['blocks'];	  
       $custom_title = Fix_Quotes($_POST['custom_title']);
       $db->sql_query("UPDATE `".$prefix."_modules` SET `custom_title`='$custom_title', `view`=$view, `inmenu`=$inmenu, `blocks`=$blocks, `groups`='$ingroups' $title WHERE `mid`=$mid");
    }
@@ -536,15 +551,20 @@ function modadmin_block ()
             else 
 			if($i != 1) 
             {
-                $updown = "<a href=\"".$admin_file.".php?op=modules&amp;downcat=".$cat['pos']."\">".get_evo_icon('evo-sprite sort-down', $admlang['modblock']['sort_down'])."</a><a href=\"".$admin_file.".php?op=modules&amp;upcat=".$cat['pos']."\">".get_evo_icon('evo-sprite sort-up', $admlang['modblock']['sort_up'])."</a>";
+                $updown = "<a href=\"".$admin_file.".php?op=modules&amp;downcat=".$cat['pos']."\">".get_evo_icon('evo-sprite sort-down', $admlang['modblock']['sort_down'])."</a><a 
+				href=\"".$admin_file.".php?op=modules&amp;upcat=".$cat['pos']."\">".get_evo_icon('evo-sprite sort-up', $admlang['modblock']['sort_up'])."</a>";
             } 
             else 
 			if($i == 1) 
             {
                 $updown = "<a href=\"".$admin_file.".php?op=modules&amp;downcat=".$cat['pos']."\">".get_evo_icon('evo-sprite sort-down', $admlang['modblock']['sort_down'])."</a>";
             }
-            echo "<span style=\"font-weight: bold; text-align: 'center';\">".$cat['name']."&nbsp;&nbsp;<a href=\"".$admin_file.".php?op=modules&amp;editcat=".$cat['cid']."\">".get_evo_icon('evo-sprite edit', $admlang['modblock']['edit'])."</a>&nbsp;<a href=\"".$admin_file.".php?op=modules&amp;deletecat=".$cat['cid']."\">".get_evo_icon('evo-sprite trash-2', $admlang['modblock']['delete'])."</a>&nbsp;".$updown."</span>";
-            echo "<ul id=\"ul".$cat['cid']."\" class=\"sortable boxy\">\n";
+            
+			echo "<span style=\"font-weight: bold; text-align: 'center';\">".$cat['name']."&nbsp;&nbsp;<a 
+			href=\"".$admin_file.".php?op=modules&amp;editcat=".$cat['cid']."\">".get_evo_icon('evo-sprite edit', $admlang['modblock']['edit'])."</a>&nbsp;<a 
+			href=\"".$admin_file.".php?op=modules&amp;deletecat=".$cat['cid']."\">".get_evo_icon('evo-sprite trash-2', $admlang['modblock']['delete'])."</a>&nbsp;".$updown."</span>";
+            
+			echo "<ul id=\"ul".$cat['cid']."\" class=\"sortable boxy\">\n";
             $sql = 'SELECT * FROM `'.$prefix.'_modules` WHERE cat_id='.$cat['cid'].' AND `inmenu`<>0 ORDER BY `pos` ASC';
             $result = $db->sql_query($sql);
             
@@ -631,7 +651,7 @@ function modadmin_get_module_cats ()
 
     if (isset($cats) && is_array($cats)) $modadmin_module_cats = $cats;
 
-    if((($cats = $cache->load('module_cats', 'config')) === false) || !isset($cats)) 
+    if(!($cats = $cache->load('module_cats', 'config'))) 
 	{
         if(!$result = $db->sql_query("SELECT `cid`, `name`, `image`, `pos`, `link_type`, `link` FROM `".$prefix."_modules_cat` WHERE `name`<>'Home' ORDER BY `pos` ASC")) 
 		{
@@ -823,6 +843,10 @@ function modadmin_delete_link ($mid)
 function modadmin_add_scripts() 
 {
     global $Sajax;
+    
+	if(!isset($script))
+	$script = '';
+
     $script .= "function module_activate(mid) {
                     x_modadmin_activate(mid, confirm);
                     window.location.reload();
@@ -924,7 +948,7 @@ if(isset($_POST['collapse']) && is_int(intval($_POST['collapse'])))
    global $db, $prefix, $module_collapse, $cache;
    $db->sql_query('UPDATE `'.$prefix.'_evolution` SET `evo_value`="'.intval($_POST['collapse']).'" WHERE `evo_field`= "module_collapse"');
    $module_collapse = intval($_POST['collapse']);
-   $cache->delete('evoconfig');
+   $cache->delete('titanium_evoconfig');
    $cache->resync();
 }
 
@@ -940,6 +964,8 @@ if(isset($_POST['catsave']))
    modadmin_edit_cat_save($_POST['catsave'], $_POST['cattitle'], $_POST['catimage']);
    redirect($admin_file.".php?op=modules&area=block");
 }
+if(!isset($area))
+$area = null;
 
 switch ($area) 
 {
@@ -961,11 +987,15 @@ switch ($area)
    default:
       include_once(NUKE_BASE_DIR.'header.php');
       modadmin_title();
-      $modadmin_modules = modadmin_get_modules(intval($_GET['edit']));
-      (!isset($_GET['edit'])) ? modadmin_dispaly_modules($modadmin_modules) : modadmin_edit_module($modadmin_modules[0]);
-      modadmin_title();
-      break;
+	  
+	  if(!isset($_GET['edit']))
+	  $_GET['edit'] = null;
+	  
+	  $modadmin_modules = modadmin_get_modules((int) $_GET['edit']);
+      (isset($_GET['edit'])) ? modadmin_edit_module($modadmin_modules[0]) : modadmin_dispaly_modules($modadmin_modules);
+       modadmin_title();
+	   break;
 }
 
 include_once(NUKE_BASE_DIR.'footer.php');
-?>
+

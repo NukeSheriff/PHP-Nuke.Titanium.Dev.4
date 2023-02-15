@@ -1,4 +1,31 @@
 <?php
+/*======================================================================= 
+  PHP-Nuke Titanium | Nuke-Evolution Xtreme : PHP-Nuke Web Portal System
+ =======================================================================*/
+
+/*======================================================================= 
+  PHP-NUKE: Shout Box
+  ==========================
+
+ Copyright (c) 2003-2005 by Aric Bolf (SuperCat)
+ http://www.OurScripts.net
+
+ Copyright (c) 2002 by Quiecom
+ http://www.Quiecom.com
+
+ This program is free software. You can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation
+ =======================================================================*/
+
+/*****[CHANGES]**********************************************************
+-=[Base]=-
+      Nuke Patched                             v3.1.0       08/10/2005
+      NukeSentinel                             v2.4.2       10/29/2005
+-=[Mod]=-
+      Advanced Username Color                  v1.0.5       10/10/2005
+ ************************************************************************/
+
 function ShoutBox($ShoutSubmit, $ShoutComment, $shoutuid) 
 {
     global $currentlang, $cache, $top_content, $mid_content, $bottom_content, $ShoutMarqueeheight, $nsnst_const, $userinfo, $prefix, $db, $top_out, $board_config;
@@ -14,43 +41,55 @@ function ShoutBox($ShoutSubmit, $ShoutComment, $shoutuid)
     $is_user = is_user();
     $username = $userinfo['username'];
 
-    if ((($conf = $cache->load('conf', 'shoutbox')) == false) || empty($conf)) 
+    if (!($conf = $cache->load('conf', 'titanium_shoutbox')))
 	{
         $sql = "SELECT * FROM `".$prefix."_shoutbox_conf`";
         $result = $db->sql_query($sql);
         $conf = $db->sql_fetchrow($result);
-        $cache->save('conf', 'shoutbox', $conf);
+        $cache->save('conf', 'titanium_shoutbox', $conf);
         $db->sql_freeresult($result);
     }
 
-    if ((($nameblock = $cache->load('nameblock', 'shoutbox')) == false) || empty($nameblock)) 
+    if (!($nameblock = $cache->load('nameblock', 'titanium_shoutbox'))) 
 	{
         $sql = "SELECT `name` FROM ".$prefix."_shoutbox_nameblock";
         $nameresult = $db->sql_query($sql);
         while ($row = $db->sql_fetchrow($nameresult)) {
             $nameblock[] = $row;
         }
-        $cache->save('nameblock', 'shoutbox', $nameblock);
+        $cache->save('nameblock', 'titanium_shoutbox', $nameblock);
         $db->sql_freeresult($nameresult);
     }
 
-    if ((($censor = $cache->load('censor', 'shoutbox')) == false) || empty($censor)) 
+    if (!($censor = $cache->load('censor', 'titanium_shoutbox'))) 
 	{
         $sql = "SELECT * FROM ".$prefix."_shoutbox_censor";
         $result = $db->sql_query($sql);
-        while ($row = $db->sql_fetchrow($result)) {
-            $censor[] = $row;
+        
+		$censor = [];
+		$row = [];
+		
+		while ($row = $db->sql_fetchrow($result)) {
+        
+		if(!isset($row))
+			$censor[] = $row;
         }
-        $cache->save('censor', 'shoutbox', $censor);
+        $cache->save('censor', 'titanium_shoutbox', $censor);
         $db->sql_freeresult($result);
     }
 
     // Check if block is in center position
     $sql = "SELECT `bposition` FROM `".$prefix."_blocks` WHERE `blockfile`='block-Shout_Box.php'";
+
+	$SBpos = [];
+
     $SBpos = $db->sql_query($sql);
     $SBpos = $db->sql_fetchrow($SBpos);
-    
-	if ($SBpos['bposition'] == 'c' || $SBpos['bposition'] == 'd') 
+	
+	if(!isset($SBpos['bposition']))
+	$SBpos['bposition'] = '';
+	
+	if (!empty($SBpos['bposition']) && $SBpos['bposition'] == 'c' || $SBpos['bposition'] == 'd') 
 	{
         $SBpos = 'center';
         $SBborder = 1;
@@ -439,11 +478,11 @@ function ShoutBox($ShoutSubmit, $ShoutComment, $shoutuid)
 			if (!$ShoutError) {
 
 				if ($is_user) {
-					$day = EvoDate('d/m/Y', time(), $userinfo['user_timezone']);
-					$time = EvoDate('H:i', time(), $userinfo['user_timezone']);
+					$day = FormatDate('d/m/Y', time(), $userinfo['user_timezone']);
+					$time = FormatDate('H:i', time(), $userinfo['user_timezone']);
 				} else {
-					$day = EvoDate('d/m/Y', time(), $board_config['board_timezone']);
-					$time = EvoDate('H:i', time(), $board_config['board_timezone']);
+					$day = FormatDate('d/m/Y', time(), $board_config['board_timezone']);
+					$time = FormatDate('H:i', time(), $board_config['board_timezone']);
 				}
 
 				$currentTime = time();
@@ -480,10 +519,18 @@ function ShoutBox($ShoutSubmit, $ShoutComment, $shoutuid)
             $showBackground = 'no';
         }
 
+			$up_img = '<i class="bi bi-caret-up"></i>';
+			$down_img = '<i class="bi bi-caret-down"></i>';
+			//$pause_img = '<i class="bi bi-pause"></i>';
+
+			/*
+
         if (!empty($themeRow['blockArrowColor'])) {
+			
             if (file_exists(NUKE_MODULES_DIR.'Shout_Box/images/up/'.$themeRow['blockArrowColor'])) {
                 $up_img = 'modules/Shout_Box/images/up/'.$themeRow['blockArrowColor'];
             } else {
+				
                 $up_img = 'modules/Shout_Box/images/up/Black.gif';
             }
             if (file_exists(NUKE_MODULES_DIR.'Shout_Box/images/down/'.$themeRow['blockArrowColor'])) {
@@ -501,7 +548,8 @@ function ShoutBox($ShoutSubmit, $ShoutComment, $shoutuid)
             $down_img = 'modules/Shout_Box/images/down/Black.gif';
             $pause_img = 'modules/Shout_Box/images/pause/Black.gif';
         }
-
+        */
+		
         $sql = "SELECT * FROM `".$prefix."_shoutbox_shouts` ORDER BY `id` DESC LIMIT $conf[number]";
         $result = $db->sql_query($sql);
 
@@ -552,15 +600,19 @@ function ShoutBox($ShoutSubmit, $ShoutComment, $shoutuid)
             } else {
                 if ($flag == 1) { $flag = 2; }
                 elseif ($flag == 2) { $flag = 1; }
+				
+				$mid_content .= "<tr><td style=\"background-color: none;\">";
+				
+				if(isset($rowColor['blockColor1']))
                 $mid_content .= "<tr><td style=\"background-color: ".$rowColor['blockColor1'].";\">";
             }
             $mid_content .= "<strong>"._SB_ADMIN.":</strong> ".$stickyRow0['comment'];
             if ($conf['date']== 'yes') {
                 if ($is_user) {
-                    $unixTime = EvoDate($userinfo['user_dateformat'], $stickyRow0['timestamp'], $userinfo['user_timezone']);
+                    $unixTime = FormatDate($userinfo['user_dateformat'], $stickyRow0['timestamp'], $userinfo['user_timezone']);
                     $mid_content .= "<br />$unixTime";
                 } else {
-                    $unixTime = EvoDate($board_config['default_dateformat'], $stickyRow0['timestamp'], $board_config['board_timezone']);
+                    $unixTime = FormatDate($board_config['default_dateformat'], $stickyRow0['timestamp'], $board_config['board_timezone']);
                     $mid_content .= "<br />$unixTime";
                 }
             }
@@ -577,10 +629,10 @@ function ShoutBox($ShoutSubmit, $ShoutComment, $shoutuid)
             $mid_content .= "<strong>"._SB_ADMIN.":</strong> ".$stickyRow1['comment'];
             if ($conf['date']== 'yes') {
                 if ($is_user) {
-                    $unixTime = EvoDate($userinfo['user_dateformat'], $stickyRow1['timestamp'], $userinfo['user_timezone']);
+                    $unixTime = FormatDate($userinfo['user_dateformat'], $stickyRow1['timestamp'], $userinfo['user_timezone']);
                     $mid_content .= "<br />$unixTime";
                 } else {
-                    $unixTime = EvoDate($board_config['default_dateformat'], $stickyRow1['timestamp'], $board_config['board_timezone']);
+                    $unixTime = FormatDate($board_config['default_dateformat'], $stickyRow1['timestamp'], $board_config['board_timezone']);
                     $mid_content .= "<br />$unixDay&nbsp;$unixTime";
                 }
             }
@@ -589,13 +641,14 @@ function ShoutBox($ShoutSubmit, $ShoutComment, $shoutuid)
         // end sticky shouts
 
         $i = 0;
+		$flag = [];
         while ($row = $db->sql_fetchrow($result)) {
             if ($flag == 1) { $bgcolor = $rowColor['blockColor1']; }
             if ($flag == 2) { $bgcolor = $rowColor['blockColor2']; }
             if ($showBackground == 'yes') {
                 $tempContent[$i] = "<tr><td>";
             } else {
-                $tempContent[$i] = "<tr><td style=\"background-color: $bgcolor;\">";
+                $tempContent[$i] = "<tr><td style=\"background-color: transparent;\">";
             }
             $ShoutComment = str_replace('src=', 'src="', $row['comment']);
             $ShoutComment = str_replace('.gif>', '.gif" alt="" />', $ShoutComment);
@@ -656,12 +709,12 @@ function ShoutBox($ShoutSubmit, $ShoutComment, $shoutuid)
                     // reads unix timestamp && formats it to the viewer's timezone
                     if ($is_user) 
 					{
-                        $unixTime = EvoDate($userinfo['user_dateformat'], $row['timestamp'], $userinfo['user_timezone']);
+                        $unixTime = FormatDate($userinfo['user_dateformat'], $row['timestamp'], $userinfo['user_timezone']);
                         $tempContent[$i] .= "<br />$unixTime<br /><br />"; # added a space between shouts
                     } 
 					else 
 					{
-                        $unixTime = EvoDate($board_config['default_dateformat'], $row['timestamp'], $board_config['board_timezone']);
+                        $unixTime = FormatDate($board_config['default_dateformat'], $row['timestamp'], $board_config['board_timezone']);
                         $tempContent[$i] .= "<br />$unixTime<br /><br />"; # added a space between shouts
                     }
                 } 
@@ -690,7 +743,7 @@ function ShoutBox($ShoutSubmit, $ShoutComment, $shoutuid)
             }
         }
         // You may not remove or edit this copyright!!! Doing so violates the GPL license.
-        $mid_content .= "<tr><td align=\"right\"><a title=\"Free scripts!\" target=\"_blank\" href=\"https://ourscripts.86it.us\"><span style=\"font-size: 9;\">Shout Box &copy;</span></a></td></tr></table>";
+        $mid_content .= "<tr><td align=\"right\"><a title=\"SuperCats ShoutBox!\" target=\"_blank\" href=\"https://supercat.86it.us\"><span style=\"font-size: 9;\">Shout Box &copy;</span></a></td></tr></table>";
         // end copyright.
         // end mid content
         // start bottom content $bottom_content
@@ -703,14 +756,11 @@ function ShoutBox($ShoutSubmit, $ShoutComment, $shoutuid)
         if ($conf['anonymouspost'] == 'no' && $username == 'Anonymous') 
 		{
             $bottom_content .= "<div style=\"padding: 1px;\" align=\"center\" class=\"content\"><a href=\"modules.php?name=Shout_Box\">"._SHOUTHISTORY."</a>";
-            $bottom_content .= "&nbsp;<span style=\"cursor: pointer;\" onmouseover=\"SBspeed=4\" onmouseout=\"SBspeed=1\"><img src=\"$up_img\" 
-			border=\"0\" alt=\"\" width=\"9\" height=\"5\" /></span>";
+            $bottom_content .= "&nbsp;<span style=\"cursor: pointer;\" onmouseover=\"SBspeed=4\" onmouseout=\"SBspeed=1\">$up_img</span>";
             
-			$bottom_content .= "&nbsp;<span style=\"cursor: pointer;\" onmouseover=\"SBspeed=1-5\" onmouseout=\"SBspeed=1\"><img 
-			src=\"$down_img\" border=\"0\" alt=\"\" width=\"9\" height=\"5\" /></span>";
+			$bottom_content .= "&nbsp;<span style=\"cursor: pointer;\" onmouseover=\"SBspeed=1-5\" onmouseout=\"SBspeed=1\">$down_img</span>";
             
-			$bottom_content .= "&nbsp;<span style=\"cursor: wait;\" onmouseover=\"SBspeed=0\" onmouseout=\"SBspeed=1\"><img 
-			src=\"$pause_img\" border=\"0\" alt=\"\" width=\"9\" height=\"5\" /></span>";
+			//$bottom_content .= "&nbsp;<span style=\"cursor: wait;\" onmouseover=\"SBspeed=0\" onmouseout=\"SBspeed=1\">$pause_img</span>";
             
 			$bottom_content .= "</div><div style=\"padding: 1px; text-align: center;\" class=\"content\"><br />"._ONLYREGISTERED." <a 
 			href=\"modules.php?name=Your_Account\">"._SHOUTLOGIN."</a> "._OR." <a href=\"modules.php?name=Your_Account&amp;op=new_user\">"._CREATEANACCT."</a>.</div>";
@@ -724,14 +774,11 @@ function ShoutBox($ShoutSubmit, $ShoutComment, $shoutuid)
 			&& $username == 'Anonymous') ? '3' : '2')."\" style=\"padding: 5px 0;\"" : '') . ">";
             
 			$bottom_content .= "<div align=\"center\"><a href=\"modules.php?name=Shout_Box\">"._SHOUTHISTORY."</a></div>";
-            $bottom_content .= "<span style=\"cursor: pointer;\" onmouseover=\"SBspeed=4\" onmouseout=\"SBspeed=1\"><img 
-			src=\"$up_img\" border=\"0\" alt=\"\" width=\"9\" height=\"5\" /></span>";
+            $bottom_content .= "<span style=\"cursor: pointer;\" onmouseover=\"SBspeed=4\" onmouseout=\"SBspeed=1\">$up_img</span>";
             
-			$bottom_content .= "<span style=\"cursor: pointer;\" onmouseover=\"SBspeed=1-5\" onmouseout=\"SBspeed=1\"><img 
-			src=\"$down_img\" border=\"0\" alt=\"\" width=\"9\" height=\"5\" /></span>";
+			$bottom_content .= "<span style=\"cursor: pointer;\" onmouseover=\"SBspeed=1-5\" onmouseout=\"SBspeed=1\">$down_img</span>";
             
-			$bottom_content .= "<span style=\"cursor: wait;\" onmouseover=\"SBspeed=0\" onmouseout=\"SBspeed=1\"><img 
-			src=\"$pause_img\" border=\"0\" alt=\"\" width=\"9\" height=\"5\" /></span>";
+			//$bottom_content .= "<span style=\"cursor: wait;\" onmouseover=\"SBspeed=0\" onmouseout=\"SBspeed=1\">$pause_img</span>";
             
 			$bottom_content .= "</td>";
             $bottom_content .= "</tr>\n";
@@ -753,15 +800,18 @@ function ShoutBox($ShoutSubmit, $ShoutComment, $shoutuid)
             }
 			
             if ($conf['anonymouspost']== 'yes' && $username == 'Anonymous') {
-                if ($PreviousUsername) { $boxtext = $PreviousUsername; } else { $boxtext = _NAME; }
+                if (isset($PreviousUsername)) { $boxtext = $PreviousUsername; } else { $boxtext = _NAME; }
                 
 				if ($SBpos == 'center') 
 				{
-					$bottom_content .= "<td align=\"center\" width=\"130\" valign=\"top\" style=\"padding-right: 10px;\"><input type=\"text\" name=\"shoutuid\" id=\"shoutuid\" size=\"$ShoutNameWidth\" value=\"$boxtext\" maxlength=\"25\" onfocus=\"if ( this.value == '"._NAME."' ) { this.value=''; }\" onblur=\"if (this.value == '') { this.value='"._NAME."' }\" style=\"width: 100%;\" /></td>\n";
+					$bottom_content .= "<td align=\"center\" width=\"130\" valign=\"top\" style=\"padding-right: 10px;\"><input type=\"text\" 
+					name=\"shoutuid\" id=\"shoutuid\" size=\"$ShoutNameWidth\" value=\"$boxtext\" maxlength=\"25\" onfocus=\"if ( this.value == '"._NAME."' ) { 
+					this.value=''; }\" onblur=\"if (this.value == '') { this.value='"._NAME."' }\" style=\"width: 100%;\" /></td>\n";
 				} 
 				else 
 				{
-					$bottom_content .= "<tr><td align=\"center\"><input type=\"text\" name=\"shoutuid\" id=\"shoutuid\" size=\"$ShoutNameWidth\" value=\"$boxtext\" maxlength=\"25\" onfocus=\"if ( this.value == '"._NAME."' ) { this.value=''; }\" onblur=\"if (this.value == '') { this.value='"._NAME."' }\" /></td></tr>\n";
+					$bottom_content .= "<tr><td align=\"center\"><input type=\"text\" name=\"shoutuid\" id=\"shoutuid\" size=\"$ShoutNameWidth\" value=\"$boxtext\" 
+					maxlength=\"25\" onfocus=\"if ( this.value == '"._NAME."' ) { this.value=''; }\" onblur=\"if (this.value == '') { this.value='"._NAME."' }\" /></td></tr>\n";
 				}
             }
 			
@@ -770,7 +820,8 @@ function ShoutBox($ShoutSubmit, $ShoutComment, $shoutuid)
 			if ($SBpos == 'center') 
 			{
 				$bottom_content .= "<td align=\"left\" nowrap=\"nowrap\" valign=\"top\">";
-				$bottom_content .= "<input type=\"text\" name=\"ShoutComment\" id=\"ShoutComment\" size=\"$ShoutTextWidth\" onKeyPress=\"return OnEnter(event)\" value=\"$boxtext\" maxlength=\"2500\" onfocus=\"if ( this.value == '"._SB_MESSAGE."' ) { this.value=''; }\" onblur=\"if (this.value == '') { this.value='"._SB_MESSAGE."' }\" style=\"width: 100%;\" />";
+				$bottom_content .= "<input type=\"text\" name=\"ShoutComment\" id=\"ShoutComment\" size=\"$ShoutTextWidth\" onKeyPress=\"return OnEnter(event)\" value=\"$boxtext\" 
+				maxlength=\"2500\" onfocus=\"if ( this.value == '"._SB_MESSAGE."' ) { this.value=''; }\" onblur=\"if (this.value == '') { this.value='"._SB_MESSAGE."' }\" style=\"width: 100%;\" />";
 				$bottom_content .= "</td>";
 				
 				$bottom_content .= "<td align=\"right\" width=\"140\">";

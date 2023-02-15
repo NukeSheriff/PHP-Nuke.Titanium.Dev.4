@@ -942,7 +942,8 @@ function get_var($var_name, $default, $multibyte = false)
     }
     else
     {
-        list($key_type, $type) = each($default);
+        //list($key_type, $type) = each($default);
+		foreach ($default as $key_type => $type);
         $type = gettype($type);
         $key_type = gettype($key_type);
     }

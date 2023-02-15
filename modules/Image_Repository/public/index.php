@@ -22,7 +22,7 @@ function main()
 //-------------------------------------------------------------------------
 //	UPDATE THE JQUERY IMAGE COUNT VALUE.
 //-------------------------------------------------------------------------	
-	echo '<script type="text/javascript">'."\n";
+	echo '<script>'."\n";
 	echo '	var imagecount_per_page = "'.$settings['perpage'].'"'."\n";
     echo '</script>'."\n";	
 //-------------------------------------------------------------------------
@@ -446,6 +446,11 @@ function modal_code_popup()
 function mysettings()
 {
 	global $db, $lang_new, $module_name, $userinfo, $settings, $mysettings;
+	
+	if(!isset($_POST['submit'])) 
+    $_POST['submit'] = '';
+
+	
 	if($_POST['submit'] && $_POST['uid'] == $userinfo['user_id'])
 	{
 //-------------------------------------------------------------------------
@@ -557,7 +562,7 @@ function myquota()
 //-------------------------------------------------------------------------
 //	JQUERY, TO UPDATE THE PERCENTAGE BAR WITH YOUR QUOTA PROGRESS
 //-------------------------------------------------------------------------
-	echo '<script type="text/javascript">';
+	echo '<script>';
 //-------------------------------------------------------------------------
 //	IF THIS IS EVOLUTION XTREME, USE JQUERY NOCONFLICT
 //-------------------------------------------------------------------------
@@ -893,6 +898,9 @@ function image_forum_upload()
 //-------------------------------------------------------------------------
 //	IF THE USER VISITING IS NOT A REGISTERED MEMBER, SUGGEST THEY REGISTER
 //-------------------------------------------------------------------------
+if(!isset($op)) 
+$op = '';
+
 if(!is_user())
 {
 	OpenTable();

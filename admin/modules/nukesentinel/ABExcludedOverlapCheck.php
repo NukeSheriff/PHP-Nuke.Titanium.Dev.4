@@ -31,7 +31,7 @@ if(!isset($min)) {
   excludedmenu();
   CloseMenu();
   CloseTable();
-  echo '<br />'."\n";
+
   OpenTable();
   echo _AB_EXCLUDEDOVERLAPCHECK01.'<br />'."\n";
   echo _AB_EXCLUDEDOVERLAPCHECK02.'<br />'."\n";
@@ -203,7 +203,7 @@ if(!isset($min)) {
     echo '</tr>'."\n";
     echo '</table>'."\n";
   } else {
-    echo '<script type="text/javascript"><!--'."\n";
+    echo '<script><!--'."\n";
     echo 'setTimeout(\'Redirect()\','.($pagedelay*1000).');'."\n";
     echo 'function Redirect()'."\n";
     echo '{'."\n";
@@ -227,7 +227,7 @@ if(!isset($min)) {
   excludedmenu();
   CloseMenu();
   CloseTable();
-  echo '<br />'."\n";
+
   OpenTable();
   echo '<center><strong>'._AB_EXCLUDEDOVERLAPCHECK.' '._AB_COMPLETED.'</strong></center>'."\n";
   CloseTable();

@@ -31,7 +31,7 @@ if(!isset($min)) {
   ip2cmenu();
   CloseMenu();
   CloseTable();
-  echo '<br />'."\n";
+
   OpenTable();
   echo _AB_IP2CUPDATEEXCLUDEDRANGES01.'<br />'."\n";
   echo _AB_IP2CUPDATEEXCLUDEDRANGES02.'<br />'."\n";
@@ -63,7 +63,7 @@ if(!isset($min)) {
   include_once(NUKE_BASE_DIR.'header.php');
   title($pagetitle);
   OpenTable();
-  echo '<script type="text/javascript"><!--'."\n";
+  echo '<script><!--'."\n";
   echo 'setTimeout(\'Redirect()\','.($pagedelay*1000).');'."\n";
   echo 'function Redirect()'."\n";
   echo '{'."\n";
@@ -87,7 +87,7 @@ if(!isset($min)) {
   ip2cmenu();
   CloseMenu();
   CloseTable();
-  echo '<br />'."\n";
+
   OpenTable();
   echo '<center><strong>'._AB_IP2CUPDATEEXCLUDEDRANGES.' '._AB_COMPLETED.'</strong></center>'."\n";
   CloseTable();

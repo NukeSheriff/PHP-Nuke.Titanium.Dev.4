@@ -47,17 +47,15 @@ if (realpath(__FILE__) == realpath($_SERVER['SCRIPT_FILENAME'])) exit('Access De
 function need_delete($file, $dir=false) 
 {
 # will be uncommented for release
-if (!is_Admin): 
-  if (!$dir): 
-	if(!is_file($file)) 
-	return;
-	DisplayError("<span style='color: red; font-size: 24pt'>"._NEED_DELETE." ".$file."</span>");
-  else: 
-	if(!is_dir($file)) 
-	return;
-	DisplayError("<span style='color: red; font-size: 24pt'>"._NEED_DELETE." the folder \"".$file."\"</span>");
-  endif;
-endif;
+#  if (!$dir): 
+#	if(!is_file($file)) 
+#	return;
+#	DisplayError("<span style='color: red; font-size: 24pt'>"._NEED_DELETE." ".$file."</span>");
+#  else: 
+#	if(!is_dir($file)) 
+#	return;
+#	DisplayError("<span style='color: red; font-size: 24pt'>"._NEED_DELETE." the folder \"".$file."\"</span>");
+#  endif;
 }
 /*****[END]********************************************
  [ Other:   Need To Delete                     v1.0.0 ]
@@ -75,6 +73,13 @@ function login()
 		$ip     = get_user_IP();
 		$fcdate = date("mdYHi");
 		$fc     = dburow("SELECT * FROM `"._FAILED_LOGIN_INFO_TABLE."` WHERE fc_ip = '$ip'");
+		
+		if(!isset($fc['fc_datetime']))
+		$fc['fc_datetime'] = 0;
+
+		if(!isset($fc['fc_attempts']))
+		$fc['fc_attempts'] = 0;
+		
 		$fc_datetime = $fcdate - $fc['fc_datetime'];
 		$fc_lefttime = get_evo_option( 'admin_fc_timeout' ) - $fc_datetime; 
 
@@ -89,6 +94,11 @@ function login()
 	/**
 	 * Delete the old attempt when the timeout hits 0.
 	 */
+	$fc = [];
+	
+	if(!isset($fc['fc_attempts']))
+	$fc['fc_attempts'] = 0;
+	
 	if ($fc['fc_attempts'] >= "1" && $fc_datetime >= get_evo_option( 'admin_fc_timeout' )):
 		dbquery("DELETE FROM `"._FAILED_LOGIN_INFO_TABLE."` WHERE fc_ip = '$ip'");
 		dbquery("OPTIMIZE TABLE "._FAILED_LOGIN_INFO_TABLE);
@@ -96,7 +106,7 @@ function login()
 
 	?>
 
-	<style type="text/css">
+	<style>
 		.form-control {
 			display: block;
 			width: 100%;
@@ -250,7 +260,12 @@ function adminmenu($url, $title, $image)
 		$image_file = '';
 	endif;
 
-	if (!is_god($admin) && ($title == 'Edit Admins' || $title == 'Nuke Sentinel(tm)'))
+	if (!is_god($admin) && ($title == 'Edit Admins' 
+	|| $title == 'Nuke Sentinel(tm)' 
+	|| $title == 'Nuke Honeypot' 
+	|| $title == 'Database' 
+	|| $title == 'Newsletter' 
+	|| $title == 'Messages'))
 	{
 		if(defined('BOOTSTRAP')):
 		?>
@@ -286,7 +301,8 @@ function adminmenu($url, $title, $image)
 
 	if ($counter == 5) 
 	{
-		if($end == FALSE)
+		//if($end == FALSE)
+		if(!isset($end))
 		{
 			echo '</tr>'."\n".'<tr>'."\n";
 		}
@@ -307,6 +323,9 @@ function track_admin_intrusion()
 	else
 		$admin_msg = '<span style="color:green; font-weight: bold;">'.$admlang['logs']['admin_fine'].'</span>';
 
+	if(!isset($return))
+	$return = '';
+	
 	$return .= '  <tr>'."\n";
 	$return .= '    <td style="height:15px; font-size: 13px; width:65%;">'.$admin_msg.'</td>'."\n";
 	$return .= '    <td style="height:15px; font-size: 13px; width:25%; text-align:center;"><a href="'.$admin_file.'.php?op=viewadminlog&amp;log=admin">'.$admlang['logs']['view'].'</a></td>'."\n";
@@ -327,6 +346,9 @@ function track_sql_errors()
 	else
 		$error_msg = '<span style="color:green; font-weight: bold;">'.$admlang['logs']['error_fine'].'</span>';
 
+	if(!isset($return))
+	$return = '';
+
 	$return .= '  <tr>'."\n";
 	$return .= '    <td style="height:15px; font-size: 13px; width:65%;">'.$error_msg.'</td>'."\n";
 	$return .= '    <td style="height:15px; font-size: 13px; width:25%; text-align:center;"><a href="'.$admin_file.'.php?op=viewadminlog&amp;log=error">'.$admlang['logs']['view'].'</a></td>'."\n";
@@ -334,7 +356,7 @@ function track_sql_errors()
 	return $return;
 }
 
-function track_evo_version() 
+function track_titanium_current_version() 
 {
 	global $admin_file, $admlang;
 	/**
@@ -343,10 +365,10 @@ function track_evo_version()
 	$version_refresh = get_query_var( 'check-version', 'get', 'string', false );
 	$version_check_cache = cache_json_data('https://php-nuke-titanium.86it.us/versions/titanium-version.json', dirname(__FILE__).'/version.cache', $version_refresh); 
 
-	if($version_check_cache['version'] == NUKE_EVO):
+	if($version_check_cache['version'] == NUKE_TITANIUM):
 
 		$version_desc = $admlang['admin']['version_is_current'];
-		$new_version_number = NUKE_EVO;
+		$new_version_number = NUKE_TITANIUM;
 		$update_url = $admin_file.'.php?check-version=true';
 
 	else:
@@ -356,6 +378,9 @@ function track_evo_version()
 		$update_url = $version_check_cache['download'];
 
 	endif;
+
+	if(!isset($return))
+	$return = '';
 
 	$return .= '  <tr>'."\n";
 	$return .= '    <td style="height:15px; font-size: 13px; width:65%;">PHP-Nuke Titanium '.$new_version_number.'&nbsp;&nbsp;<font size="1">'.$version_desc.'</font></td>'."\n";
@@ -384,7 +409,7 @@ function GraphicAdmin($pos=1)
 	echo '  <tr>';
 
 	/*
-    | START | LIVE NEWS FEED DIRECTLY FROM https://dev-php-nuke-evolution-xtreme.86it.us
+    | START | LIVE NEWS FEED DIRECTLY FROM https://php-nuke-titanium.86it.us
     */
 	global $domain;
 
@@ -454,7 +479,7 @@ function GraphicAdmin($pos=1)
 	echo track_sql_errors();
 	
 	# check evo version
-	echo track_evo_version();
+	echo track_titanium_current_version();
 
     # admin ip lock enabled/disabled
 	echo '<tr>';
@@ -599,6 +624,9 @@ function GraphicAdmin($pos=1)
 		echo '    <td colspan="6">';
 		echo '      <table style="text-align: center; width: 100%;" border="0" cellpadding="0" cellspacing="1" class="forumline">';
 		echo '        <tr>';
+		if (!isset($theme['theme_name']))
+		$theme['theme_name'] = 'Titanium_Core';
+		
 		if (file_exists(NUKE_THEMES_DIR.$theme['theme_name']."/admin/index.php") 
 		AND file_exists(NUKE_THEMES_DIR.$theme['theme_name']."/admin/links.php") 
 		AND file_exists(NUKE_THEMES_DIR.$theme['theme_name']."/admin/case.php")):
@@ -693,7 +721,7 @@ function track_sql_errors_bs()
 	return $errorlog;
 }
 
-function track_evo_version_bs() 
+function track_titanium_current_version_bs() 
 {
 	global $admin_file, $admlang;
 	/**
@@ -702,12 +730,12 @@ function track_evo_version_bs()
 	$version_refresh = get_query_var( 'check-version', 'get', 'string', false );
 	$version_check_cache = cache_json_data('https://php-nuke-titanium.86it.us/versions/titanium-version.json', dirname(__FILE__).'/version.cache', $version_refresh); 
 
-	if ( $version_check_cache['version'] == NUKE_EVO ):
+	if ( $version_check_cache['version'] == NUKE_TITANIUM):
 
 		$version_desc = $admlang['admin']['version_is_current'];
 		$class = 'bg-dark';
 		$update_available = false;
-		$new_version_number = NUKE_EVO;
+		$new_version_number = NUKE_TITANIUM;
 		$update_url = $admin_file.'.php?check-version=true';
 
 	else:
@@ -715,7 +743,7 @@ function track_evo_version_bs()
 		$version_desc = $admlang['admin']['version_is_out-of-date'];
 		$class = 'bg-warning';
 		$update_available = true;
-		$new_version_number = NUKE_EVO;
+		$new_version_number = NUKE_TITANIUM;
 		$update_url = $version_check_cache['download'];
 
 	endif;
@@ -748,7 +776,7 @@ function administration_panel( $pos = 1 )
 
 	$adminlog = track_admin_intrusions_bs();
 	$errorlog = track_sql_errors_bs();
-	$versioncheck = track_evo_version_bs();
+	$versioncheck = track_titanium_current_version_bs();
 
 	$refresh_feed = get_query_var('refresh-feed', 'get', 'bool');
 

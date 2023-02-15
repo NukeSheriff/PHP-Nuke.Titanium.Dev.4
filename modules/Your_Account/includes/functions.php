@@ -168,28 +168,28 @@ function ya_save_config($config_name, $config_value, $config_param=""){
 
 function ya_get_configs(){
     global $prefix, $db, $cache;
-    static $ya_config;
-    if(isset($ya_config)) return $ya_config;
-/*****['BEGIN']****************************************
- [ Base:    Caching System                     v3.0.0 ]
- ******************************************************/
-    if(($ya_config = $cache->load('ya_config', 'config')) === false) {
-/*****['END']******************************************
- [ Base:    Caching System                     v3.0.0 ]
- ******************************************************/
+    
+	static $ya_config;
+    
+	if(isset($ya_config)):
+	  
+	  $ya_config = $cache->load('titanium_ya_config', 'config'); 
+	  
+	  return $ya_config;
+	
+	endif;
+	
       $configresult = $db->sql_query("SELECT config_name, config_value FROM ".$prefix."_cnbya_config");
-      while (list($config_name, $config_value) = $db->sql_fetchrow($configresult)) {
-          $ya_config[$config_name] = $config_value;
+
+      while (list($config_name, $config_value) = $db->sql_fetchrow($configresult)) 
+	  {
+          if(isset($config_value))
+		  $ya_config[$config_name] = $config_value;
       }
       $db->sql_freeresult($configresult);
-/*****['BEGIN']****************************************
- [ Base:    Caching System                     v3.0.0 ]
- ******************************************************/
-      $cache->save('ya_config', 'config', $ya_config);
-    }
-/*****['END']******************************************
- [ Base:    Caching System                     v3.0.0 ]
- ******************************************************/
+    
+	  $cache->save('titanium_ya_config', 'config', $ya_config);
+    
     return $ya_config;
 }
 
@@ -201,13 +201,17 @@ function yacookie($setuid, $setusername, $setpass, $setstorynum, $setumode, $set
 
     $guest = 1;
     $user_agent = $identify->identify_agent();
-    if (is_user()) {
-        $guest = 0;
-    } elseif($user_agent['engine'] == 'bot') {
-        $guest = 3;
-    }
-
-    if (!empty($setusername)) {
+    
+	   if (is_user()) 
+	   {
+          $guest = 0;
+       } 
+	   elseif(isset($user_agent['engine']) && $user_agent['engine'] == 'bot') 
+	   {
+          $guest = 3;
+       }
+    
+	if (!empty($setusername)) {
         $uname = substr($setusername, 0,25);
         if ($row = $db->sql_fetchrow($result)) {
             $db->sql_query("UPDATE ".$prefix."_session SET uname='$setusername', time='$ctime', host_addr='$ip', guest='$guest' WHERE uname='$uname'");
@@ -239,18 +243,17 @@ function YA_CoolSize($size) {
     return $mysize;
 }
 
-// Borrowed from Nuke 7.8 Ads module
 function YA_MakePass() {
     static $makepass;
     if(isset($makepass)) return $makepass;
     $cons = 'bcdfghjklmnpqrstvwxyz';
     $vocs = 'aeiou';
     for ($x=0; $x < 6; $x++) {
-        mt_srand ((double) microtime() * 1000000);
+		mt_srand(0, MT_RAND_MT19937);
         $con[$x] = substr($cons, mt_rand(0, strlen($cons)-1), 1);
         $voc[$x] = substr($vocs, mt_rand(0, strlen($vocs)-1), 1);
     }
-    mt_srand((double)microtime()*1000000);
+	mt_srand(0, MT_RAND_MT19937);
     $num1 = mt_rand(0, 9);
     $num2 = mt_rand(0, 9);
     $makepass = $con[0] . $voc[0] .$con[2] . $num1 . $num2 . $con[3] . $voc[3] . $con[4];
@@ -352,7 +355,8 @@ function mmain($user) {
     global $stop, $module_name, $redirect, $mode, $t, $f, $ya_config, $user, $p;
     if(!is_user()) {
         include_once(NUKE_BASE_DIR.'header.php');
-        mt_srand ((double)microtime()*1000000);
+        //mt_srand ((double)microtime()*1000000);
+		mt_srand(0, MT_RAND_MT19937);
         $maxran = 10000000;
         $random_num = mt_rand(0, $maxran);
         Show_CNBYA_menu();

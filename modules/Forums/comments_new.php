@@ -1,8 +1,7 @@
 <?php
-/*======================================================================= 
-  PHP-Nuke Titanium | Nuke-Evolution Xtreme : PHP-Nuke Web Portal System
+/*=======================================================================
+ PHP-Nuke Titanium: Enhanced and Advanced PHP-Nuke Web Portal System
  =======================================================================*/
-
 
 /***************************************************************************
  *                             comments_new.php
@@ -22,7 +21,7 @@ if (!defined('MODULE_FILE')) {
     die('You can\'t access this file directly...');
 }
 
-if ($popup != "1"){
+if (!isset($popup)){
     $module_name = basename(dirname(__FILE__));
     require("modules/".$module_name."/nukebb.php");
 }
@@ -36,10 +35,11 @@ include($phpbb_root_path .'extension.inc');
 include($phpbb_root_path . 'common.'.$phpEx);
 include('includes/functions_post.' . $phpEx);
 
+global $userinfo;
 //
 // Start session management
 //
-$userdata = session_pagestart($user_ip, PAGE_POSTING, $nukeuser);
+$userdata = session_pagestart($user_ip, PAGE_POSTING);
 init_userprefs($userdata);
 //
 // End session management
@@ -60,8 +60,10 @@ if ( !$userdata['session_logged_in'] )
 generate_smilies('inline', PAGE_POSTING);
 include("includes/page_header.php");
 
+if(isset($HTTP_GET_VARS['mode']))
 $mode = $HTTP_GET_VARS['mode'];
-
+else
+$mode = '';
 
 //Comment update section
 if($mode == "update")
@@ -73,7 +75,8 @@ if($mode == "update")
             //Checks to make sure the user has privledge to enter highscores.
             //This query checks the user_id stored in the users cookie and in the database.
             //If they don't match, the comments is not entered and error message is displayed.
-            $user_id = $userdata['user_id'];
+            $user_id = $userinfo['user_id'];
+			
             $sql = "SELECT game_highuser FROM " . GAMES_TABLE. " WHERE game_id = $game_id";
                 if( !($result = $db->sql_query($sql)))
             {
@@ -106,7 +109,8 @@ if($mode == "update")
     //Checks to make sure the user has privledge to enter highscores.
     //This query checks the user_id stored in the users cookie and in the database.
     //If they don't match, the comments is not entered and error message is displayed.
-    $user_id = $userdata['user_id'];
+    $user_id = $userinfo['user_id'];
+	
     $sql = "SELECT game_highuser FROM " . GAMES_TABLE. " WHERE game_id = $game_id";
         if( !($result = $db->sql_query($sql)))
         {
@@ -165,7 +169,7 @@ if($mode == "update")
             ));
 
     //Gets Avatar based on user settings and other user stats
-    $sql = "SELECT username, user_avatar_type, user_allowavatar, user_avatar FROM " . USERS_TABLE . " WHERE user_id = " . $userdata['user_id'] ;
+    $sql = "SELECT username, user_avatar_type, user_allowavatar, user_avatar FROM " . USERS_TABLE . " WHERE user_id = " . $userinfo['user_id'] ;
     if( !($result = $db->sql_query($sql)) )
     {
         message_die(GENERAL_ERROR, "Cannot access the users table", '', __LINE__, __FILE__, $sql);
@@ -182,25 +186,25 @@ if($mode == "update")
        switch( $user_avatar_type )
        {
           case USER_AVATAR_UPLOAD:
-             $avatar_img = ( $board_config['allow_avatar_upload'] ) ? '<img src="' . $board_config['avatar_path'] . '/' . $user_avatar . '" alt="" border="0" hspace="20" align="center" valign="center"/>' : '';
+             $avatar_img = ( $board_config['allow_avatar_upload'] ) ? '<img class="rounded-corners-profile" src="' . $board_config['avatar_path'] . '/' . $user_avatar . '" alt="" border="0" hspace="20" align="center" valign="center"/>' : '';
              break;
           case USER_AVATAR_REMOTE:
-             $avatar_img = ( $board_config['allow_avatar_remote'] ) ? '<img src="' . $user_avatar . '" alt="" border="0"  hspace="20" align="center" valign="center" />' : '';
+             $avatar_img = ( $board_config['allow_avatar_remote'] ) ? '<img class="rounded-corners-profile" src="' . $user_avatar . '" alt="" border="0"  hspace="20" align="center" valign="center" />' : '';
              break;
           case USER_AVATAR_GALLERY:
-             $avatar_img = ( $board_config['allow_avatar_local'] ) ? '<img src="' . $board_config['avatar_gallery_path'] . '/' . $user_avatar . '" alt="" border="0"  hspace="20" align="center" valign="center" />' : '';
+             $avatar_img = ( $board_config['allow_avatar_local'] ) ? '<img class="rounded-corners-profile" src="' . $board_config['avatar_gallery_path'] . '/' . $user_avatar . '" alt="" border="0"  hspace="20" align="center" valign="center" />' : '';
              break;
        }
 
     }
         $template->assign_vars(array(
                 'L_QUICK_STATS' => $lang['quick_stats'],
-            'USER_AVATAR' => '<a href="modules.php?name=Forums&amp;file=profile&amp;mode=viewprofile&amp;u=' . $userdata['user_id'] . '">' . $avatar_img . '</a>',
-            'USERNAME' => '<a href="' . append_sid("statarcade.$phpEx?uid=" . $userdata['user_id'] ) . '" class="genmed">' . $row['username'] . '</a> ',
+            'USER_AVATAR' => '<a href="modules.php?name=Forums&amp;file=profile&amp;mode=viewprofile&amp;u=' . $userinfo['user_id'] . '">' . $avatar_img . '</a>',
+            'USERNAME' => '<a href="' . append_sid("statarcade.$phpEx?uid=" . $userinfo['user_id'] ) . '" class="genmed">' . $row['username'] . '</a> ',
             ));
 
     //Gets some user stats to display on the comment submission page
-    $sql ="SELECT s.score_set, s.game_id, g.game_name FROM " . SCORES_TABLE. " s LEFT JOIN " . USERS_TABLE. " u ON s.user_id = u.user_id LEFT JOIN " . GAMES_TABLE. " g ON s.game_id = g.game_id WHERE s.user_id = " . $userdata['user_id'] . " ORDER BY score_set DESC LIMIT 1";
+    $sql ="SELECT s.score_set, s.game_id, g.game_name FROM " . SCORES_TABLE. " s LEFT JOIN " . USERS_TABLE. " u ON s.user_id = u.user_id LEFT JOIN " . GAMES_TABLE. " g ON s.game_id = g.game_id WHERE s.user_id = " . $userinfo['user_id'] . " ORDER BY score_set DESC LIMIT 1";
 
     if( !($result = $db->sql_query($sql)) )
     {
@@ -211,7 +215,7 @@ if($mode == "update")
         $times_played = $row['score_set'];
         $fav_game_name = '<a href="' . append_sid("games.$phpEx?gid=" . $row['game_id']) . '">' . $row['game_name'] . '</a>';
 
-    $sql="SELECT * FROM " .GAMES_TABLE ." WHERE game_highuser = " . $userdata['user_id'] . " ORDER BY game_highdate DESC";
+    $sql="SELECT * FROM " .GAMES_TABLE ." WHERE game_highuser = " . $userinfo['user_id'] . " ORDER BY game_highdate DESC";
     if( !($result = $db->sql_query($sql)) )
     {
         message_die(GENERAL_ERROR, "Cannot access last high score data", '', __LINE__, __FILE__, $sql);

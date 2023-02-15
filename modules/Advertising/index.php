@@ -1,6 +1,6 @@
 <?php
 /*=======================================================================
- Nuke-Evolution Basic: Enhanced PHP-Nuke Web Portal System
+ PHP-Nuke Titanium | Nuke-Evolution Basic : Enhanced and Advanced
  =======================================================================*/
 
 /************************************************************************/
@@ -41,7 +41,7 @@ function is_client($client) {
     static $ClientSave;
     if(isset($ClientSave)) return $ClientSave;
     if(!is_array($client)) {
-        $client = base64_decode($client);
+        $client = base64_decode(isset($client));
         $client = addslashes($client);
         $client = explode(":", $client);
         $cid = $client[0];
@@ -523,14 +523,21 @@ function client_report($cid, $bid) {
     }
 }
 
-switch ($op) {
+switch (isset($op)) {
 
     default:
         theindex();
     break;
 
     case "sitestats":
-        sitestats();
+	include(NUKE_BASE_DIR.'header.php');
+	OpenTable();
+	echo '<div align="center"><img class="icons" align="absmiddle" width="200" src="'.img('unknown-error.png','error').'"></div><br />';
+	echo '<div align="center"><strong>This section is still under development!</strong></div><br />';
+	echo '<div align="center"><strong><span class="blink-one" style="color: red;">Under Construction</span></strong></div><br />';
+    CloseTable();
+    include(NUKE_BASE_DIR.'footer.php');
+//        sitestats();
     break;
 
     case "plans":

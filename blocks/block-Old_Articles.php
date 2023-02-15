@@ -55,7 +55,7 @@ if (isset($userinfo['storynum']) AND $user_news == 1) {
 }
 $boxstuff = "<table border=\"0\" width=\"100%\">";
 $boxTitle = _PASTARTICLES;
-$sql = "SELECT sid, title, datePublished, comments FROM ".$prefix."_stories $querylang ORDER BY datePublished DESC LIMIT $storynum, $oldnum";
+$sql = "SELECT sid, title, datePublished, comments FROM ".$prefix."_blogs $querylang ORDER BY datePublished DESC LIMIT $storynum, $oldnum";
 $result = $db->sql_query($sql);
 $vari = 0;
 
@@ -99,14 +99,14 @@ while (list($sid, $title, $time, $comments) = $db->sql_fetchrow($result)) {
     $comments = "";
     }
     if($time2==$datetime2) {
-        $boxstuff .= "<tr><td valign=\"top\"><strong><big>&middot;</big></strong></td><td> <a href=\"modules.php?name=News&amp;file=article&amp;sid=$sid$r_options\">$title</a> $comments</td></tr>\n";
+        $boxstuff .= "<tr><td valign=\"top\"><strong><big>&middot;</big></strong></td><td> <a href=\"modules.php?name=Blogs&amp;file=article&amp;sid=$sid$r_options\">$title</a> $comments</td></tr>\n";
     } else {
         if(empty($a)) {
-            $boxstuff .= "<tr><td colspan=\"2\"><strong>$datetime2</strong></td></tr><tr><td valign=\"top\"><strong><big>&middot;</big></strong></td><td> <a href=\"modules.php?name=News&amp;file=article&amp;sid=$sid$r_options\">$title</a> $comments</td></tr>\n";
+            $boxstuff .= "<tr><td colspan=\"2\"><strong>$datetime2</strong></td></tr><tr><td valign=\"top\"><strong><big>&middot;</big></strong></td><td> <a href=\"modules.php?name=Blogs&amp;file=article&amp;sid=$sid$r_options\">$title</a> $comments</td></tr>\n";
         $time2 = $datetime2;
         $a = 1;
     } else {
-        $boxstuff .= "<tr><td colspan=\"2\"><strong>$datetime2</strong></td></tr><tr><td valign=\"top\"><strong><big>&middot;</big></strong></td><td> <a href=\"modules.php?name=News&amp;file=article&amp;sid=$sid$r_options\">$title</a> $comments</td></tr>\n";
+        $boxstuff .= "<tr><td colspan=\"2\"><strong>$datetime2</strong></td></tr><tr><td valign=\"top\"><strong><big>&middot;</big></strong></td><td> <a href=\"modules.php?name=Blogs&amp;file=article&amp;sid=$sid$r_options\">$title</a> $comments</td></tr>\n";
         $time2 = $datetime2;
     }
     }

@@ -61,8 +61,15 @@ include_once(NUKE_INCLUDE_DIR.'styles.php');
 ##################################################
 # Include for some common javascripts functions  #
 ##################################################
-
 addJSToHead(NUKE_JQUERY_SCRIPTS_DIR.'javascript/onload.js','file');
+
+###############################################################
+# Quick reply javascript Added back 10/08/2022 TheGhost START #
+###############################################################
+addJSToHead(NUKE_JQUERY_SCRIPTS_DIR.'javascript/sqr_show_hide.js','file');
+###############################################################
+# Quick reply javascript Added back 10/08/2022 TheGhost END   #
+###############################################################
 
 /*****[BEGIN]******************************************
  [ Base:    NukeSentinel                       v2.4.1 ]
@@ -79,19 +86,11 @@ if(!defined('FORUM_ADMIN'))
  ******************************************************/
 
 /*****[BEGIN]******************************************
- [ Mod:     IE Embed Fix                       v1.0.0 ]
- ******************************************************/
-/*echo "<!--[if IE]><script defer=\"defer\" type=\"text/javascript\" src=\"includes/embed_fix.js\"></script>\n<![endif]-->";*/
-/*****[END]********************************************
- [ Mod:     IE Embed Fix                       v1.0.0 ]
- ******************************************************/
-
-/*****[BEGIN]******************************************
  [ Mod:     Facebook Mod                       v1.0.0 ]
  ******************************************************/
-global $fb, $portaladmin, $appID, $api_version, $appSecret, $my_url, $connected;
+global $appID, $api_version, $appSecret, $my_url, $connected;
 if ($appID > 0) { # This will not load if there is not a facebook app id.
-echo "\n<script type=\"text/javascript\">\n";
+echo "\n<script>\n";
 echo "<!--\n";
 ##################################################################################################################
 ## titaniumAPI                                                                                                  ##
@@ -103,8 +102,6 @@ echo "console.log('Successful login for: ' + response.name);\n";
     // this error comes with the following
     // Uncaught TypeError: Cannot set property 'innerHTML' of null
     // echo "document.getElementById('status').innerHTML = 'Thanks for logging in, ' + response.name + '!';\n";
-
-
 echo "});\n";
 echo "}\n";
 ##################################################################################################################
@@ -117,7 +114,7 @@ echo "if (response.status === 'connected') {\n";   // Logged into your webpage a
 echo "titaniumAPI();\n";  
 echo "} else {\n";                                 // Not logged into your webpage or we are unable to tell.
 echo "document.getElementById('status').innerHTML = 'Please log ' +\n";
-echo "'into this webpage.';\n";
+echo "'into our Facebook app if you would like to leave a comment.';\n";
 echo "}\n";
 echo "}\n\n";
 ##################################################################################################################
@@ -171,8 +168,6 @@ echo "});\n";
 ##################################################################################################################
 echo "FB.AppEvents.logPageView();\n";   
 ##################################################################################################################
-##################################################################################################################
-##################################################################################################################
 echo "};\n";
 
 echo "(function(d, s, id){\n";
@@ -197,7 +192,7 @@ echo "</script>\n\n";
   $connected = '::: You aren\'t logged into our facebook app :::';
 
 }
-/* echo "\n<script type=\"text/javascript\">\n"; */
+/* echo "\n<script>\n"; */
 /* echo "<!--\n";                                */
 /* echo "//-->\n";                               */
 /* echo "</script>\n\n";                         */
@@ -206,7 +201,7 @@ echo "</script>\n\n";
  ******************************************************/
 
 if (isset($userpage)) {
-    echo "<script type=\"text/javascript\">\n";
+    echo "<script>\n";
     echo "<!--\n";
     echo "function showimage() {\n";
     echo "if (!document.images)\n";
@@ -220,7 +215,7 @@ if (isset($userpage)) {
 
 global $name;
 if (defined('MODULE_FILE') && !defined("HOME_FILE") AND file_exists("modules/".$name."/copyright.php")) {
-    echo "<script type=\"text/javascript\">\n";
+    echo "<script>\n";
     echo "<!--\n";
     echo "function openwindow(){\n";
     echo "    window.open (\"modules/".$name."/copyright.php\",\"Copyright\",\"toolbar=no,location=no,directories=no,status=no,scrollbars=yes,resizable=no,copyhistory=no,width=400,height=200\");\n";
@@ -252,24 +247,27 @@ if(get_evo_option('recap_site_key') && get_evo_option('recap_priv_key'))
  ******************************************************/
 
 /*****[BEGIN]******************************************
- [ Mod:     IE PNG Fix                         v1.0.0 ]
+ [ Mod:     Arcade                             v1.0.0 ]
  ******************************************************/
-$arcade_on = (isset($_GET['file']) && $_GET['file'] == 'arcade_games') ? true : (isset($_POST['file']) && $_POST['file'] == 'arcade_games') ? true : false;
+# Fixed 10/08/2022 START
+# PHP Deprecated:  Unparenthesized `a ? b : c ? d : e` is deprecated. Use either `(a ? b : c) ? d : e` or `a ? b : (c ? d : e)`
+$arcade_on = ((isset($_GET['file']) && $_GET['file'] == 'arcade_games') ? true : ((isset($_POST['file']) && $_POST['file'] == 'arcade_games') ?  true : false)); //Fixed TheGhost
 
 if (!$arcade_on) {
-    $arcade_on = (isset($_GET['do']) && $_GET['do'] == 'newscore') ? true : (isset($_POST['do']) && $_POST['do'] == 'newscore') ? true : false;
+    $arcade_on = ((isset($_GET['do']) && $_GET['do'] == 'newscore') ? true : ((isset($_POST['do']) && $_POST['do'] == 'newscore') ? true : false)); //Fixed TheGhost
 }
+# PHP Deprecated:  Unparenthesized `a ? b : c ? d : e` is deprecated. Use either `(a ? b : c) ? d : e` or `a ? b : (c ? d : e)`
+# Fixed 10/08/2022 END
 /*****[END]********************************************
- [ Mod:     IE PNG Fix                         v1.0.0 ]
- ******************************************************/
-
- 
+ [ Mod:     Arcade                             v1.0.0 ]
+ ******************************************************
+  
 /*****[BEGIN]******************************************
  [ Mod:     Password Strength Meter            v1.0.0 ]
  ******************************************************/
  global $admin_file;
  if(isset($name) && ($name == "Your Account" || $name == "Your_Account" || $name == "Profile" || defined('ADMIN_FILE'))) {
-     echo '<script type="text/javascript">
+     echo '<script>
         var pwd_strong = "'.PSM_STRONG.'";
         var pwd_stronger = "'.PSM_STRONGER.'";
         var pwd_strongest = "'.PSM_STRONGEST.'";
@@ -288,7 +286,7 @@ if (!$arcade_on) {
  [ Base:    Theme Management                   v1.0.2 ]
  ******************************************************/
 if (defined('ADMIN_FILE')) {
-    echo "<script type=\"text/javascript\">\n";
+    echo "<script>\n";
     echo "<!--\n";
     echo "function themepreview(theme){\n";
     echo "window.open (\"index.php?tpreview=\" + theme + \"\",\"ThemePreview\",\"toolbar=no,location=no,directories=no,status=no,scrollbars=yes,resizable=no,copyhistory=no,width=1000,height=800\");\n";
@@ -306,7 +304,7 @@ if (defined('ADMIN_FILE')) {
 if (defined('ADMIN_FILE') && defined('USE_DRAG_DROP')) {
     global $element_ids, $Sajax;
     if(isset($Sajax) && is_object($Sajax)) {
-        echo "<script type=\"text/javascript\">\n<!--\n";
+        echo "<script>\n<!--\n";
         echo $Sajax->sajax_show_javascript();
         echo "//-->\n";
         echo "</script>\n";
@@ -330,10 +328,10 @@ if (defined('ADMIN_FILE') && defined('USE_DRAG_DROP')) {
     }
 
     //echo "<link rel=\"stylesheet\" href=\"includes/ajax/lists.css\" type=\"text/css\">";
-    echo "<script type=\"text/javascript\" src=\"includes/ajax/coordinates.js\" defer></script>\n";
-    echo "<script type=\"text/javascript\" src=\"includes/ajax/drag.js\" defer></script>\n";
-    echo "<script type=\"text/javascript\" src=\"includes/ajax/dragdrop.js\" defer></script>\n";
-    echo "<script type=\"text/javascript\"><!--
+    echo "<script src=\"includes/ajax/coordinates.js\" defer></script>\n";
+    echo "<script src=\"includes/ajax/drag.js\" defer></script>\n";
+    echo "<script src=\"includes/ajax/dragdrop.js\" defer></script>\n";
+    echo "<script><!--
     function confirm(z)
     {
       window.status = 'Sajax version updated';
@@ -364,7 +362,7 @@ if (defined('ADMIN_FILE') && defined('USE_DRAG_DROP')) {
 global $plus_minus_images, $collapse;
 if ($collapse) 
 {
-    $JStoBody  = '<script type="text/javascript">'.PHP_EOL;
+    $JStoBody  = '<script>'.PHP_EOL;
     $JStoBody .= '  var enablepersist   = "on";'.PHP_EOL;
     $JStoBody .= '  var memoryduration  = "7";'.PHP_EOL;
     $JStoBody .= '  var contractsymbol  = "'.$plus_minus_images['minus'].'";'.PHP_EOL;
@@ -381,7 +379,6 @@ if ($collapse)
  ******************************************************/
 include(NUKE_JQUERY_INCLUDE_DIR.'jquery.php');
 include(NUKE_JQUERY_INCLUDE_DIR.'jquery.reimg.image.resizer.php');
-
 /**
  * A jQuery Plugin to replace Javascript's window.alert(), window.confirm() and window.prompt() functions
  *
@@ -530,7 +527,7 @@ include(NUKE_JQUERY_INCLUDE_DIR.'jquery.tooltipster.php');
 /*****[END]********************************************
  [ Mod:     jQuery                             v1.5.0 ]
  ******************************************************/
-echo "\n\n<!--                                                                                
+echo "\n<!--                                                                                
 @@@@@@@  @@@  @@@  @@@@@@@@   @@@@@@@@  @@@  @@@   @@@@@@    @@@@@@   @@@@@@@  
 @@@@@@@  @@@  @@@  @@@@@@@@  @@@@@@@@@  @@@  @@@  @@@@@@@@  @@@@@@@   @@@@@@@  
   @@!    @@!  @@@  @@!       !@@        @@!  @@@  @@!  @@@  !@@         @@!    
@@ -545,23 +542,21 @@ echo "\n\n<!--
 # Easter Egg Hunt added by who I'm not sure but it's cute
 # addJSToBody(NUKE_JQUERY_SCRIPTS_DIR.'Evo.EE.js','file');
 # addJSToBody(NUKE_JQUERY_SCRIPTS_DIR.'Evo.EE.CMD.js','file');
-echo "\n<!-- Ernest Allen Buffington aka TheGhost -->\n\n\n";
+echo "\n<!-- Ernest Allen Buffington aka TheGhost was here 11/20/2022 -->\n\n";
 
 global $analytics;
 
-/* This is garbage as far as I can see - to much fucking work to get it working.
 if (!empty($analytics)) {
-   echo "<script type=\"text/javascript\">
+   echo "<script>
            var gaJsHost = ((\"https:\" == document.location.protocol) ? \"https://ssl.\" : \"http://www.\");
            document.write(unescape(\"%3Cscript src='\" + gaJsHost + \"google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E\"));
          </script>
-         <script type=\"text/javascript\">
+         <script>
            var pageTracker = _gat._getTracker(\"".$analytics."\");
            pageTracker._initData();
            pageTracker._trackPageview();
          </script>";
 }
-*/
 
 global $more_js;
 if (!empty($more_js)) {
@@ -569,5 +564,6 @@ if (!empty($more_js)) {
 }
 
 //DO NOT PUT ANYTHING AFTER THIS LINE
-echo "<!--[if IE]><script type=\"text/javascript\">womOn();</script><![endif]-->\n";
+echo "<!--[if IE]><script>womOn();</script><![endif]-->\n";
+
 ?>

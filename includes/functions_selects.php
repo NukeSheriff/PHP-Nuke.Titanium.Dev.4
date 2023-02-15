@@ -88,10 +88,10 @@ function language_select($default, $select_name = "language", $dirname="modules/
 {
         global $phpEx;
 
-        $dir = @opendir($dirname);
+        $dir = opendir($dirname);
 
         $lang = array();
-        while ( $file = @readdir($dir) )
+        while ( $file = readdir($dir) )
         {
                 if ( preg_match("/^lang_/i", $file) && !is_file($dirname . "/" . $file) && !is_link($dirname . "/" . $file) )
                 {
@@ -102,18 +102,19 @@ function language_select($default, $select_name = "language", $dirname="modules/
                 }
         }
 
-        @closedir($dir);
+        closedir($dir);
 
-        @asort($lang);
-        @reset($lang);
+        asort($lang);
+        reset($lang);
 
         $lang_select = '<select class="form-control" name="' . $select_name . '" id="'.$select_name.'">';
-        while ( list($displayname, $filename) = @each($lang) )
-        {
-                $selected = ( strtolower($default) == strtolower($filename) ) ? ' selected="selected"' : '';
-                $lang_select .= '<option value="' . $filename . '"' . $selected . '>' . ucwords($displayname) . '</option>';
-        }
-        $lang_select .= '</select>';
+
+        foreach ($lang as $displayname => $filename): 
+          $selected = ( strtolower((string) $default) == strtolower((string) $filename) ) ? ' selected="selected"' : '';
+          $lang_select .= '<option value="' . $filename . '"' . $selected . '>' . ucwords((string) $displayname) . '</option>';
+        endforeach;
+
+		$lang_select .= '</select>';
 
         return $lang_select;
 }
@@ -126,7 +127,10 @@ function language_select($default, $select_name = "language", $dirname="modules/
  ******************************************************/
 function style_select($name="default_Theme")
 {
-    $themes = get_themes('active');
+    if(!isset($extra))
+	$extra = '';
+	
+	$themes = get_themes('active');
     $select = "<select class=\"form-control\" name=\"" . $name . "\" id=\"" . $name . "\" $extra>";
     foreach($themes as $theme) {
         $name = (!empty($theme['custom_name'])) ? $theme['custom_name'] : $theme['theme_name'];
@@ -148,26 +152,21 @@ function tz_select($default, $select_name = 'timezone')
 {
         global $sys_timezone, $lang;
 
-        if ( !isset($default) )
-        {
-                $default == $sys_timezone;
-        }
+        if(!isset($default)):
+          $default == $sys_timezone;
+        endif;
+
         $tz_select = '<select class="form-control" name="' . $select_name . '" id="' . $select_name . '">';
 
-        while( list($offset, $zone) = @each($lang['tz']) )
-        {
-                $selected = ( $offset == $default ) ? ' selected="selected"' : '';
-/*****[BEGIN]******************************************
- [ Mod:    Advanced Time Management            v2.2.0 ]
- ******************************************************/
-                $tz_select .= '<option value="' . $offset . '"' . $selected . '>' . str_replace('GMT', 'UTC', $zone) . '</option>';
-/*****[END]********************************************
- [ Mod:    Advanced Time Management            v2.2.0 ]
- ******************************************************/
-        }
-        $tz_select .= '</select>';
+        foreach($lang['tz'] as $offset => $zone): 
+		  $selected = ( $offset == $default ) ? ' selected="selected"' : '';
+	      # Mod: Advanced Time Management v2.2.0 START
+          $tz_select .= '<option value="' . $offset . '"' . $selected . '>' . str_replace('GMT', 'UTC', (string) $zone) . '</option>';
+	      # Mod: Advanced Time Management v2.2.0 START
+       endforeach;
+	   $tz_select .= '</select>';
 
-        return $tz_select;
+   return $tz_select;
 }
 
 /*****[BEGIN]******************************************
@@ -179,16 +178,13 @@ function quick_reply_select($default, $select_name = "show_quickreply")
 
     $sqr_select = '<select class="form-control" name="' . $select_name . '" id="' . $select_name . '">';
 
-    while( list($value, $mode) = @each($lang['sqr']) )
-    {
-        $selected = ( $value == $default ) ? ' selected="selected"' : '';
-        $sqr_select .= '<option value="' . $value . '"' . $selected . '>' . $mode . '</option>';
-    }
-
+    foreach($lang['sqr'] as $value => $mode): 
+      $selected = ( $value == $default ) ? ' selected="selected"' : '';
+      $sqr_select .= '<option value="' . $value . '"' . $selected . '>' . $mode . '</option>';
+    endforeach;
     $sqr_select .= '</select>';
 
     return $sqr_select;
-
 }
 /*****[END]********************************************
  [ Mod:     Super Quick Reply                  v1.3.0 ]
@@ -203,12 +199,10 @@ global $lang;
 
     $g_select = '<select class="form-control" name="' . $select_name . '" id="' . $select_name . '">';
 
-    while( list($value, $text) = @each($lang['show_glance_option']) )
-    {
-        $selected = ( $value == $default ) ? ' selected="selected"' : '';
-        $g_select .= '<option value="' . $value . '"' . $selected . '>' . $text . '</option>';
-    }
-
+    foreach($lang['show_glance_option'] as $value => $text): 
+      $selected = ( $value == $default ) ? ' selected="selected"' : '';
+      $g_select .= '<option value="' . $value . '"' . $selected . '>' . $text . '</option>';
+    endforeach;
     $g_select .= '</select>';
 
     return $g_select;
@@ -229,7 +223,11 @@ global $db, $prefix;
     if (!$result = $db->sql_query($sql)) {
         die(mysql_error());
     }
-    $selected = (!$defualt) ? "selected=\"selected\"" : "";
+    
+	if(!isset($defualt))
+	$defualt = '';
+	
+	$selected = (!$defualt) ? "selected=\"selected\"" : "";
     $g_select .= '<option value="0" '.$selected.'>None</option>';
     while( $row = $db->sql_fetchrow($result) )
     {
@@ -252,6 +250,10 @@ function ranks_select($default, $select_name = "ranks", $value = "rank_id")
     if (!$result = $db->sql_query($sql)) {
         die(mysql_error());
     }
+
+	if(!isset($defualt))
+	$defualt = '';
+
     $selected = (!$defualt) ? "selected=\"selected\"" : "";
     $g_select .= '<option value="0" '.$selected.'>None</option>';
     while( $row = $db->sql_fetchrow($result) )
@@ -278,11 +280,10 @@ global $lang;
 
     $g_select = '<select class="form-control" name="logs_view_level" id="logs_view_level">';
 
-    while( list($value, $text) = @each($lang['logs_view_level']) )
-    {
-        $selected = ( $value == $default ) ? ' selected="selected"' : '';
-        $g_select .= '<option value="' . $value . '"' . $selected . '>' . $text . '</option>';
-    }
+    foreach($lang['logs_view_level'] as $value => $text): 
+      $selected = ( $value == $default ) ? ' selected="selected"' : '';
+      $g_select .= '<option value="' . $value . '"' . $selected . '>' . $text . '</option>';
+    endforeach;
 
     $g_select .= '</select>';
 
@@ -291,7 +292,7 @@ global $lang;
 /*****[END]********************************************
  [ Mod:     Log Actions Mod - Topic View       v2.0.0 ]
  ******************************************************/
- 
+
 /*****[BEGIN]******************************************
  [ Mod:    Birthdays                           v3.0.0 ]
  ******************************************************/

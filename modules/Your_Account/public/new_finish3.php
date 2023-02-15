@@ -3,7 +3,6 @@
   PHP-Nuke Titanium | Nuke-Evolution Xtreme : PHP-Nuke Web Portal System
  =======================================================================*/
 
-
 /*********************************************************************************/
 /* CNB Your Account: An Advanced User Management System for phpnuke             */
 /* ============================================                                 */
@@ -72,8 +71,6 @@ include(NUKE_BASE_DIR. 'header.php');
  ******************************************************/
     $ya_user_email = strtolower($ya_user_email);
 
-//     if (GDSUPPORT AND $code != $gfx_check AND ($ya_config['usegfxcheck'] == 3 OR $ya_config['usegfxcheck'] == 4 OR $ya_config['usegfxcheck'] == 6)) {
-
     $user_regdate = date("M d, Y");
     if (!isset($stop)) {
         $ya_username = ya_fixtext($ya_username);
@@ -130,23 +127,66 @@ include(NUKE_BASE_DIR. 'header.php');
         list($newest_uid) = $db->sql_fetchrow($db->sql_query("SELECT max(user_id) AS newest_uid FROM ".$user_prefix."_users"));
         if ($newest_uid == "-1") { $new_uid = 1; } else { $new_uid = $newest_uid+1; }
         $lv = time();
-        $result = $db->sql_query("INSERT INTO ".$user_prefix."_users (user_id, name, username, user_email, user_avatar, user_regdate, user_viewemail, user_password, user_lang, user_lastvisit) VALUES ($new_uid, '$ya_username', '$ya_username', '$ya_user_email', 'gallery/blank.gif', '$user_regdate', '0', '$new_password', '$language', '$lv')");
-
-        if ((count($nfield) > 0) AND ($result)) {
+        $result = $db->sql_query("INSERT INTO ".$user_prefix."_users (user_id, 
+		                                                                 name, 
+																	 username, 
+																   user_email, 
+																  user_avatar, 
+																 user_regdate, 
+															   user_viewemail, 
+															    user_password, 
+																    user_lang, 
+															   user_lastvisit) 
+	   
+	   VALUES ($new_uid, 
+	     '$ya_username', 
+		 '$ya_username', 
+	   '$ya_user_email', 
+	'gallery/blank.png', 
+	    '$user_regdate', 
+		            '0', 
+		'$new_password', 
+		    '$language', 
+			      '$lv')");
+        
+		# PHP Warning:  count(): Parameter must be an array or an object that implements Countable
+		# added $nfield = array(); - TheGhost 10/20/2022
+		
+		$nfield = array();
+        
+		if ((count($nfield) > 0) AND ($result)) {
           foreach ($nfield as $key => $var) {
               $db->sql_query("INSERT INTO ".$user_prefix."_cnbya_value (uid, fid, value) VALUES ('$new_uid', '$key','$nfield[$key]')");
           }
         }
 
     $db->sql_query("LOCK TABLES ".$user_prefix."_users WRITE");
-    $db->sql_query("UPDATE ".$user_prefix."_users SET user_avatar='gallery/blank.gif', user_avatar_type='3', user_lang='$language', user_lastvisit='$lv', umode='nested' WHERE user_id='$new_uid'");
+    $db->sql_query("UPDATE ".$user_prefix."_users SET user_avatar='gallery/blank.png', user_avatar_type='3', user_lang='$language', user_lastvisit='$lv', umode='nested' WHERE user_id='$new_uid'");
 
-    $db->sql_query("UPDATE ".$user_prefix."_users SET username='$ya_username', name='$realname', user_email='$ya_user_email', femail='$femail', user_website='$user_website', user_from='$user_from', user_occ='$user_occ', user_interests='$user_interests', newsletter='$newsletter', user_viewemail='$user_viewemail', user_allow_viewonline='$user_allow_viewonline', user_timezone='$user_timezone', user_dateformat='$user_dateformat', user_sig='$user_sig', bio='$bio', user_password='$new_password', user_regdate='$user_regdate' WHERE user_id='$new_uid'");
+    $db->sql_query("UPDATE ".$user_prefix."_users SET username='$ya_username', 
+	                                                         name='$realname', 
+												  user_email='$ya_user_email', 
+												             femail='$femail', 
+												 user_website='$user_website', 
+												       user_from='$user_from', 
+													     user_occ='$user_occ', 
+											 user_interests='$user_interests', 
+											         newsletter='$newsletter', 
+											 user_viewemail='$user_viewemail', 
+							   user_allow_viewonline='$user_allow_viewonline', 
+							                   user_timezone='$user_timezone', 
+										   user_dateformat='$user_dateformat', 
+										                 user_sig='$user_sig', 
+														           bio='$bio', 
+											    user_password='$new_password', 
+												  user_regdate='$user_regdate' WHERE user_id='$new_uid'");
 
     $db->sql_query("UNLOCK TABLES");
+	
     $sql = "INSERT INTO " . GROUPS_TABLE . " (group_name, group_description, group_single_user, group_moderator)
             VALUES ('', 'Personal User', '1', '0')";
-    if ( !($result = $db->sql_query($sql)) )
+    
+	if ( !($result = $db->sql_query($sql)) )
     {
         DisplayError('Could not insert data into groups table<br />'.$sql);
     }
@@ -194,14 +234,30 @@ include(NUKE_BASE_DIR. 'header.php');
                     'Return-Path: '.$adminmail
                 );
 
-                evo_phpmailer( $ya_user_email, $subject, $message, $headers );
+                phpmailer( $ya_user_email, $subject, $message, $headers );
             }
             title(_USERREGLOGIN);
             OpenTable();
-            $result = $db->sql_query("SELECT * FROM ".$user_prefix."_users WHERE username='$ya_username' AND user_password='$new_password'");
-            if ($db->sql_numrows($result) == 1) {
+            
+			$result = $db->sql_query("SELECT * FROM ".$user_prefix."_users WHERE username='$ya_username' AND user_password='$new_password'");
+            
+			if ($db->sql_numrows($result) == 1) 
+			{
+				
                 $userinfo = $db->sql_fetchrow($result);
-                yacookie($userinfo['user_id'],$userinfo['username'],$userinfo['user_password'],$userinfo['storynum'],$userinfo['umode'],$userinfo['uorder'],$userinfo['thold'],$userinfo['noscore'],$userinfo['ublockon'],$userinfo['theme'],$userinfo['commentmax']);
+                
+				yacookie($userinfo['user_id'],
+				        $userinfo['username'],
+				   $userinfo['user_password'],
+				        $userinfo['storynum'],
+				           $userinfo['umode'],
+						  $userinfo['uorder'],
+						   $userinfo['thold'],
+						 $userinfo['noscore'],
+						$userinfo['ublockon'],
+						   $userinfo['theme'],
+					  $userinfo['commentmax']);
+
 // menelaos: i wonder if this cookie is set correctly
 // menelaos: refresh of location? The next line causes multiple accounts to be loaded into the database, this has to be fixed
 //              echo "<META HTTP-EQUIV=\"refresh\" content=\"2;URL=/modules.php?name=$module_name\">";
@@ -241,7 +297,7 @@ include(NUKE_BASE_DIR. 'header.php');
                     'Return-Path: '.$ya_user_email
                 );
 
-                evo_phpmailer( $adminmail, $subject, $message, $headers );
+                phpmailer( $adminmail, $subject, $message, $headers );
             }
 /*****[BEGIN]******************************************
  [ Mod:     Welcome PM                         v2.0.0 ]
@@ -255,6 +311,7 @@ include(NUKE_BASE_DIR. 'header.php');
  ******************************************************/
             if($complete) {
             header("Refresh: 3; URL=index.php");
+			include(NUKE_BASE_DIR . 'footer.php');
             exit();
             }
 /*****[END]********************************************

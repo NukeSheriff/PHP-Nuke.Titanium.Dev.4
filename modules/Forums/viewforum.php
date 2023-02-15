@@ -89,7 +89,7 @@
 if (!defined('MODULE_FILE')) 
 exit("You can't access this file directly...");
 
-if($popup != "1"):
+if(!isset($popup)):
  $module_name = basename(dirname(__FILE__));
  require("modules/".$module_name."/nukebb.php");
 else:
@@ -127,6 +127,19 @@ else
 $mark_read = '';
 # End initial var setup
 
+if(!isset($parent_forum))
+$parent_forum = '';
+else
+$parent_forum = 1;
+
+if(!isset($has_subforums))
+$has_subforums  = '';
+else
+$has_subforums = 0;
+
+if(!isset($recent_item['ICON_ID']))
+$recent_item['ICON_ID'] = 0;
+	
 # Check if the user has actually sent a forum ID with his/her request
 # If not give them a nice error page.
 if(!empty($forum_id)):
@@ -168,9 +181,9 @@ endif;
 # Password check
 if(!$is_auth['auth_mod'] && $userdata['user_level'] != ADMIN):
 	$redirect = str_replace("&amp;", "&", preg_replace('#.*?([a-z]+?\.' . $phpEx . '.*?)$#i', '\1', htmlspecialchars($HTTP_SERVER_VARS['REQUEST_URI'])));
-	if($HTTP_POST_VARS['cancel']):
+	if(isset($HTTP_POST_VARS['cancel'])):
 		redirect(append_sid("index.$phpEx"));
-	elseif($HTTP_POST_VARS['pass_login']):
+	elseif(isset($HTTP_POST_VARS['pass_login'])):
 		if($forum_row['forum_password'] != '')
 		password_check('forum', $forum_id, $HTTP_POST_VARS['password'], $redirect);
 	endif;
@@ -500,13 +513,15 @@ $template->set_filenames(array(
 $all_forums = array();
 make_jumpbox_ref('viewforum.'.$phpEx, $forum_id, $all_forums);
 # Mod: Simple Subforums v1.0.1 END
-
+$look_in_themes_dir_for_forum_icons = forum_icon_img_path($forum_row['forum_icon'], 'Forums');
 $template->assign_vars(array(
+        'HAS_SUBFORUMS' => $has_subforums,
+        'PARENT_FORUM' => $parent_forum,
         'FORUM_ID' => $forum_id,
         'FORUM_NAME' => $forum_row['forum_name'],
         
 		# Mod: Forum Icons v1.0.4 START
-		'FORUM_ICON_IMG' => ($forum_row['forum_icon']) ? '<img src="'.$phpbb_root_path.$forum_row['forum_icon'].'" 
+		'FORUM_ICON_IMG' => ($forum_row['forum_icon']) ? '<img width="32" height="32" src="'.$look_in_themes_dir_for_forum_icons.'" 
 		alt="'.$forum_row['forum_name'].'" title="'.$forum_row['forum_name'].'" />&nbsp;' : '',
 		# Mod: Forum Icons v1.0.4 END
 
@@ -563,7 +578,7 @@ if($forum_row['forum_parent']):
 	for($i = 0; $i < count($all_forums); $i++):
 		if($all_forums[$i]['forum_id'] == $parent_id):
 			$template->assign_vars(array(
-				'PARENT_FORUM'			=> 1,
+				'PARENT_FORUM'			=> $parent_forum,
 				'U_VIEW_PARENT_FORUM'	=> append_sid("viewforum.$phpEx?" . POST_FORUM_URL .'=' . $all_forums[$i]['forum_id']),
 				'PARENT_FORUM_NAME'		=> $all_forums[$i]['forum_name'],
 				));
@@ -704,7 +719,7 @@ if($total_topics):
                     $folder_image = $folder_new;
                     $folder_alt = $lang['New_posts'];
                     $newest_post_img = '<a href="'.append_sid("viewtopic.$phpEx?".POST_TOPIC_URL."=$topic_id&amp;view=newest").'"><img 
-					src="'.$images['icon_newest_reply'].'" alt="'.$lang['View_newest_post'].'" title="'.$lang['View_newest_post'].'" border="0" /></a> ';
+					src="'.$images['icon_newest_reply'].'" alt="'.$lang['View_newest_post'].'" title="'.$lang['View_newest_post'].'" width="14" border="0" /></a> ';
                   else:
                     $folder_image = $folder;
                     $folder_alt = ($topic_rowset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
@@ -715,7 +730,7 @@ if($total_topics):
                $folder_image = $folder_new;
                $folder_alt = ($topic_rowset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['New_posts'];
                $newest_post_img = '<a href="'.append_sid("viewtopic.$phpEx?".POST_TOPIC_URL."=$topic_id&amp;view=newest").'"><img 
-			   src="'.$images['icon_newest_reply'].'" alt="'.$lang['View_newest_post'].'" title="'.$lang['View_newest_post'].'" border="0" /></a> ';
+			   src="'.$images['icon_newest_reply'].'" alt="'.$lang['View_newest_post'].'" title="'.$lang['View_newest_post'].'" width="14" border="0" /></a> ';
             endif;
         else:
           $folder_image = $folder;
@@ -732,7 +747,7 @@ if($total_topics):
     if(($replies + 1) > $board_config['posts_per_page']):
     
        $total_pages = ceil(($replies + 1) / $board_config['posts_per_page']);
-       $goto_page = ' [ <img src="'.$images['icon_gotopost'].'" alt="'.$lang['Goto_page'].'" title="'.$lang['Goto_page'].'" />'.$lang['Goto_page'].': ';
+       $goto_page = ' [ <img width="14" src="'.$images['icon_gotopost'].'" alt="'.$lang['Goto_page'].'" title="'.$lang['Goto_page'].'" />'.$lang['Goto_page'].': ';
        $times = 1;
 
        for($j = 0; $j < $replies + 1; $j += $board_config['posts_per_page']):
@@ -753,7 +768,10 @@ if($total_topics):
       $goto_page = '';
     endif;
 
-    # Mod: Advanced Username Color v1.0.5 START
+    if(!isset($topic_rowset[$i]['username2']))
+    $topic_rowset[$i]['username2'] = '';
+    
+	# Mod: Advanced Username Color v1.0.5 START
     $topic_rowset[$i]['username'] = UsernameColor($topic_rowset[$i]['username']);
     $topic_rowset[$i]['username2'] = UsernameColor($topic_rowset[$i]['username2']);
     $topic_rowset[$i]['user2'] = UsernameColor($topic_rowset[$i]['user2']);
@@ -904,7 +922,7 @@ endif;
 
 if($total_forums)
 {
-	$template->assign_var('HAS_SUBFORUMS', 1);
+	$template->assign_var('HAS_SUBFORUMS', $has_subforums);
 	$template->assign_block_vars('catrow', array(
 		'CAT_ID'	=> $forum_id,
 		'CAT_DESC'	=> $forum_row['forum_name'],
@@ -966,9 +984,9 @@ if($total_forums)
 	if(!($result = $db->sql_query($sql,false,true)))
 	message_die(GENERAL_ERROR, 'Could not query forum moderator information', '', __LINE__, __FILE__, $sql);
 
-	while($row = $db->sql_fetchrow($result))
+	while($row = $db->sql_fetchrow($result)):
 		$subforum_moderators[$row['forum_id']][] = '<a href="' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=" . $row['group_id']) . '">' . 	GroupColor($row['group_name']) . '</a>';
-	emdwhile;
+	endwhile;
 	$db->sql_freeresult($result);
 
 	# show subforums
@@ -986,7 +1004,7 @@ if($total_forums)
 					if(!empty($new_topic_data[$subforum_id])):
 						$subforum_last_post_time = 0;
 
-						while(list($check_topic_id,$check_post_time) = @each($new_topic_data[$subforum_id])):
+						foreach($new_topic_data[$subforum_id] as $check_topic_id => $check_post_time):
 							if(empty($tracking_topics[$check_topic_id])):
 								$unread_topics = true;
 								$subforum_last_post_time = max($check_post_time, $subforum_last_post_time);
@@ -996,7 +1014,7 @@ if($total_forums)
 									$subforum_last_post_time = max($check_post_time, $subforum_last_post_time);
 								endif;
 							endif;
-						endwhile;
+						endforeach;
 
 						if(!empty($tracking_forums[$subforum_id])):
 							if ( $tracking_forums[$subforum_id] > $subforum_last_post_time )
@@ -1025,7 +1043,7 @@ if($total_forums)
 				href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;".POST_USERS_URL.'='.$subforum_data[$j]['user_id']).'">'.UsernameColor($subforum_data[$j]['username']).'</a> ';
 				
 				$last_post .= '<a href="'.append_sid("viewtopic.$phpEx?".POST_POST_URL.'='.$subforum_data[$j]['forum_last_post_id']).'#'.$subforum_data[$j]['forum_last_post_id'].'"><img 
-				src="'.$images['icon_latest_reply'].'" border="0" alt="'.$lang['View_latest_post'].'" title="'.$lang['View_latest_post'].'" /></a>';
+				src="'.$images['icon_latest_reply'].'" width="14" border="0" alt="'.$lang['View_latest_post'].'" title="'.$lang['View_latest_post'].'" /></a>';
 			
 			else:
 				$last_post = $lang['No_Posts'];

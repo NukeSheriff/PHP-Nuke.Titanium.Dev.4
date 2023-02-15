@@ -45,10 +45,22 @@
 if (!defined('IN_PHPBB'))
 exit('Hacking attempt');
 
-if(empty($HTTP_GET_VARS[POST_USERS_URL]) || $HTTP_GET_VARS[POST_USERS_URL] == ANONYMOUS)
+if(empty($_GET[POST_USERS_URL]) || $_GET[POST_USERS_URL] == ANONYMOUS)
 message_die(GENERAL_MESSAGE, $lang['No_user_id_specified']);
 
-$profiledata = get_userdata($HTTP_GET_VARS[POST_USERS_URL]);
+$profiledata = get_userdata($_GET[POST_USERS_URL]);
+
+/*  
+ * Ghost Mode Mod v1.0
+ * @Author Ernest Allen Buffingon
+ */
+global $userinfo;
+if($profiledata["user_allow_viewonline"] == 0):
+if($userinfo['user_level'] != ADMIN && $userinfo['username'] != $profiledata['username'])
+$profiledata = get_userdata(1);
+endif;
+
+
 /*****[BEGIN]******************************************
  [ Mod:     Show Groups                        v1.0.1 ]
  ******************************************************/
@@ -61,12 +73,17 @@ if(isset($profiledata['user_id']) && !empty($profiledata['user_id'])):
     if(!($result = $db->sql_query($sql))):
     $groups = "SQL Failed to obtain last visit";
     else: 
-        if($db->sql_numrows($result) == 0):
+
+       if($db->sql_numrows($result) == 0):
         $groups = "None";
          
 		else: 
             while($row = $db->sql_fetchrow($result)):
-                $groups .= $row['group_name'] . "<br />";
+
+            if(!isset($row['group_name']))
+            $row['group_name'] = '';
+            
+			$groups = $row['group_name'] . "<br />";
             endwhile;
         endif;
         $db->sql_freeresult($result);
@@ -77,7 +94,7 @@ endif;
  ******************************************************/
 
 if(!$profiledata)
-message_die(GENERAL_MESSAGE, $lang['No_user_id_specified']);
+message_die(GENERAL_MESSAGE, $lang['Ghost_Mode_Specified']);
 
 /*****[BEGIN]******************************************
  [ Mod:    Multiple Ranks And Staff View       v2.0.3 ]
@@ -125,17 +142,17 @@ $avatar_img = '';
 if($profiledata['user_avatar_type'] && $profiledata['user_allowavatar']):
     switch( $profiledata['user_avatar_type']):
         case USER_AVATAR_UPLOAD:
-            $avatar_img = ($board_config['allow_avatar_upload']) ? '<img class="rounded-corners-profile" style="max-height: 200px; 
-			max-width: 200px;" src="'.$board_config['avatar_path']. '/'. $profiledata['user_avatar'] . '" alt="" border="0" />' : '';
+            $avatar_img = ($board_config['allow_avatar_upload']) ? '<img class="rounded-corners-profile" style="max-width: 200px;" 
+			src="'.$board_config['avatar_path']. '/'. $profiledata['user_avatar'] . '" alt="" border="0" />' : '';
             break;
         case USER_AVATAR_REMOTE:
-            $avatar_img = '<img style="max-height: 200px; max-width: 200px;" s
+            $avatar_img = '<img class="rounded-corners-profile" style="max-width: 200px;" s
 			rc="' . resize_avatar($profiledata['user_avatar']) . '" alt="" border="0" />';
             break;
         case USER_AVATAR_GALLERY:
-            $avatar_img = ( $board_config['allow_avatar_local'] ) ? '<img style="max-height: 200px; max-width: 
+            $avatar_img = ( $board_config['allow_avatar_local'] ) ? '<img class="rounded-corners-profile" style="max-width: 
 			200px;" src="' . $board_config['avatar_gallery_path'] . '/' 
-			. (($profiledata['user_avatar'] == 'blank.gif' || $profiledata['user_avatar'] == 'gallery/blank.gif') ? 'blank.png' : $profiledata['user_avatar']) 
+			. (($profiledata['user_avatar'] == 'blank.png' || $profiledata['user_avatar'] == 'gallery/blank.png') ? 'blank.png' : $profiledata['user_avatar']) 
 			. '" alt="" border="0" />' : '';
             break;
     endswitch;
@@ -143,7 +160,7 @@ endif;
 # Mod: Default avatar v1.1.0 START
 if((!$avatar_img) && (($board_config['default_avatar_set'] == 1) 
 || ($board_config['default_avatar_set'] == 2)) && ($board_config['default_avatar_users_url'])):
-  $avatar_img = '<img style="max-height: 200px; max-width: 200px;" src="'.$board_config['default_avatar_users_url'].'" alt="" border="0" />';
+  $avatar_img = '<img class="rounded-corners-profile" style="max-height: 200px; max-width: 200px;" src="'.$board_config['default_avatar_users_url'].'" alt="" border="0" />';
 endif;
 # Mod: Default avatar v1.1.0 END
 # avatar on users profile page END
@@ -296,9 +313,12 @@ if ($profiledata['user_session_time'] >= (time()-$board_config['online_time'])):
 
     if ($profiledata['user_allow_viewonline']):
         $online_status = '<a href="'.append_sid("viewonline.$phpEx").'" title="'.sprintf($lang['is_online'], $profiledata['username']).'"'.$online_color.'>'.$lang['Online'].'</a>';
-    elseif ( $userdata['user_level'] == ADMIN || $userdata['user_id'] == $profiledata['user_id'] ):
-        $online_status = '<em><a href="' . append_sid("viewonline.$phpEx") . '" title="' . sprintf($lang['is_hidden'], $profiledata['username']) . '"' . $hidden_color . '>' . $lang['Hidden'] . '</a></em>';
-    else:
+    
+	elseif ( $userdata['user_level'] == ADMIN || $userdata['user_id'] == $profiledata['user_id'] ):
+        $online_status = '<em><img style="padding-bottom: 3px;" src="images/ico/snapchat-002.ico" alt="Ghost Mode" data-alt-src="images/ico/snapchat-002.ico" 
+		width="16" height="19"> <a href="' . append_sid("viewonline.$phpEx") . '" title="' . sprintf($lang['is_hidden'], $profiledata['username']) . '"' . $hidden_color . '>' . $lang['GhostMode'] . '</a></em>';
+    
+	else:
         $online_status = '<span title="' . sprintf($lang['is_offline'], $profiledata['username']) . '"' . $offline_color . '>' . $lang['Offline'] . '</span>';
     endif;
 
@@ -316,6 +336,7 @@ display_upload_attach_box_limits($profiledata['user_id']);
 /*****[END]********************************************
  [ Mod:    Attachment Mod                      v2.4.1 ]
  ******************************************************/
+if(isset($profiledata['user_from']))
 $profiledata['user_from'] = str_replace(".png", "", $profiledata['user_from']);
 
 /*****[BEGIN]******************************************
@@ -345,6 +366,10 @@ else
  [ Mod:     Users Reputations Systems          v1.0.0 ]
  ******************************************************/
 $reputation = '';
+
+if(!isset($lang['Zero_reputation']))
+$lang['Zero_reputation'] = '<img src="images/animated/poop.png" width="26" height="26">Useless Turd Status (No Reputation)';
+
 if ($rep_config['rep_disable'] == 0)
 {
   if ($profiledata['user_reputation'] == 0)
@@ -433,6 +458,16 @@ if($profiledata['bio']) {
 /*****[END]********************************************
  [ Mod:    YA Merge                            v1.0.0 ]
  ******************************************************/
+
+if(!isset($lang['Groups']))
+$lang['Groups'] = '';
+
+if(!isset($online_status_img))
+$online_status_img = '';
+
+if(!isset($online_status))
+$online_status = '';
+
 
 $template->assign_vars(array(
 /*****[BEGIN]******************************************
@@ -656,50 +691,42 @@ $template->assign_vars(array(
 include_once('includes/bbcode.'.$phpEx);
 
 $xd_meta = get_xd_metadata();
-$xdata = get_user_xdata($HTTP_GET_VARS[POST_USERS_URL]);
-while ( list($code_name, $info) = each($xd_meta) )
-{
-    $value = isset($xdata[$code_name]) ? $xdata[$code_name] : null;
-/*****[ANFANG]*****************************************
- [ Mod:    XData Date Conversion               v0.1.1 ]
- ******************************************************/
-		if ($info['field_type'] == 'date')
-		{
-				$value = create_date($userdata['user_dateformat'], $value, $userdata['user_timezone']);
-		}
-/*****[ENDE]*******************************************
- [ Mod:    XData Date Conversion               v0.1.1 ]
- ******************************************************/
+$xdata = get_user_xdata($_GET[POST_USERS_URL]);
+
+foreach ($xd_meta as $code_name => $info) {
+    $value = $xdata[$code_name] ?? null;
+    /*****[ANFANG]*****************************************
+     [ Mod:    XData Date Conversion               v0.1.1 ]
+     ******************************************************/
+    if ($info['field_type'] == 'date')
+  		{
+  				$value = create_date($userdata['user_dateformat'], $value, $userdata['user_timezone']);
+  		}
+    /*****[ENDE]*******************************************
+     [ Mod:    XData Date Conversion               v0.1.1 ]
+     ******************************************************/
     if ( !$info['allow_html'] )
     {
-        $value = preg_replace('#(<)([\/]?.*?)(>)#is', "&lt;\\2&gt;", $value);
+        $value = preg_replace('#(<)([\/]?.*?)(>)#is', "&lt;\\2&gt;", (string) $value);
     }
-
     if ( $info['allow_bbcode'] && $profiledata['user_sig_bbcode_uid'] != '')
     {
         $value = bbencode_second_pass($value, $profiledata['xdata_bbcode']);
     }
-
     if ($info['allow_bbcode'])
     {
         $value = make_clickable($value);
     }
-
     if ( $info['allow_smilies'] )
     {
         $value = smilies_pass($value);
     }
-
-    $value = str_replace("\n", "\n<br />\n", $value);
-
+    $value = str_replace("\n", "\n<br />\n", (string) $value);
     if ( $info['display_viewprofile'] == XD_DISPLAY_NORMAL )
     {
         if ( isset($xdata[$code_name]) )
         {
-            $template->assign_block_vars('xdata', array(
-                'NAME' => $info['field_name'],
-                'VALUE' => $value
-                )
+            $template->assign_block_vars('xdata', ['NAME' => $info['field_name'], 'VALUE' => $value]
             );
         }
     }
@@ -707,12 +734,12 @@ while ( list($code_name, $info) = each($xd_meta) )
     {
         if ( isset($xdata[$code_name]) )
         {
-            $template->assign_vars( array( $code_name => $value ) );
-            $template->assign_block_vars( "switch_$code_name", array() );
+            $template->assign_vars( [$code_name => $value] );
+            $template->assign_block_vars( "switch_$code_name", [] );
         }
         else
         {
-            $template->assign_block_vars( "switch_no_$code_name", array() );
+            $template->assign_block_vars( "switch_no_$code_name", [] );
         }
     }
 }

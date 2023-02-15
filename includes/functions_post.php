@@ -221,7 +221,7 @@ function prepare_post(&$mode, &$post_data, &$bbcode_on, &$html_on, &$smilies_on,
                 if(!empty($poll_options))
                 {
                         $temp_option_text = array();
-                        while(list($option_id, $option_text) = @each($poll_options))
+						foreach ($poll_options as $option_id => $option_text)
                         {
                                 $option_text = trim($option_text);
                                 if (!empty($option_text))
@@ -287,6 +287,12 @@ function submit_post($mode, &$post_data, &$message, &$meta, &$forum_id, &$topic_
         //
         $is_auth = auth(AUTH_ALL, $forum_id, $userdata);
         $is_mod = $is_auth['auth_mod'];
+		
+        # TheGhost aka Erbest Buffington 10/14/2022 10:41am
+		# if somehow the person is able to get more than 120 characters to submit in a post subject
+		# we just chop the mother fucker off!
+		if(strlen($post_subject) >  117)
+		$post_subject = substr($post_subject,0,117) . "...";
 
         if (($mode == 'newtopic' || $mode == 'reply' || $mode == 'editpost') && !$is_mod)
 /*****[END]********************************************
@@ -317,17 +323,47 @@ function submit_post($mode, &$post_data, &$message, &$meta, &$forum_id, &$topic_
                 remove_search_post($post_id);
         }
 
+        if(!isset($post_data['edit_vote']))
+        $post_data['edit_vote'] = '';
+
         if ($mode == 'newtopic' || ($mode == 'editpost' && $post_data['first_post']))
         {
+
+                # TheGhost aka Erbest Buffington 10/14/2022 10:41am
+		        # if somehow the person is able to get more than 120 characters to submit in a post subject
+		        # we just chop the mother fucker off!
+		        if(strlen($post_subject) >  117)
+		        $post_subject = substr($post_subject,0,117) . "...";
+
                 $topic_vote = (!empty($poll_title) && count($poll_options) >= 2) ? 1 : 0;
 /*****[BEGIN]******************************************
  [ Mod:     Post Icons                         v1.0.1 ]
  ******************************************************/
-                $sql  = ($mode != "editpost") ? "INSERT INTO " . TOPICS_TABLE . " (topic_title, topic_poster, topic_time, forum_id, topic_status, topic_type, topic_icon, topic_vote) VALUES ('$post_subject', " . $userdata['user_id'] . ", '$current_time', '$forum_id', " . TOPIC_UNLOCKED . ", '$topic_type', $post_icon, '$topic_vote')" : "UPDATE " . TOPICS_TABLE . " SET topic_title = '$post_subject', topic_icon=$post_icon, topic_type = $topic_type " . (($post_data['edit_vote'] || !empty($poll_title)) ? ", topic_vote = " . $topic_vote : "") . " WHERE topic_id = '$topic_id'";
+                $sql  = ($mode != "editpost") ? "INSERT INTO " . TOPICS_TABLE . " (topic_title, 
+				                                                                  topic_poster, 
+																				    topic_time, 
+																					  forum_id, 
+																				  topic_status, 
+																				    topic_type, 
+																					topic_icon, 
+																					topic_vote) 
+																					
+		       VALUES ('$post_subject', 
+		  " . $userdata['user_id'] . ", 
+		               '$current_time', 
+					       '$forum_id', 
+				" . TOPIC_UNLOCKED . ", 
+				         '$topic_type', 
+						    $post_icon, 
+						  '$topic_vote')" : "UPDATE " . TOPICS_TABLE . " 
+						  
+		SET topic_title = '$post_subject', 
+		            topic_icon=$post_icon, 
+				 topic_type = $topic_type " . (($post_data['edit_vote'] || !empty($poll_title)) ? ", topic_vote = " . $topic_vote : "") . " WHERE topic_id = '$topic_id'";
 /*****[END]********************************************
  [ Mod:     Post Icons                         v1.0.1 ]
  ******************************************************/
-                if (!$db->sql_query($sql))
+				if (!$db->sql_query($sql))
                 {
                         message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
                 }
@@ -351,12 +387,42 @@ if ($mode == 'newtopic')
 /*****[END]********************************************
  [ Mod:     Log Moderator Actions              v1.1.6 ]
  ******************************************************/
-
         $edited_sql = ($mode == 'editpost' && !$post_data['last_post'] && $post_data['poster_post']) ? ", post_edit_time = $current_time, post_edit_count = post_edit_count + 1 " : "";
 /*****[BEGIN]******************************************
  [ Mod:     Post Icons                         v1.0.1 ]
  ******************************************************/
-        $sql = ($mode != "editpost") ? "INSERT INTO " . POSTS_TABLE . " (topic_id, forum_id, poster_id, post_username, post_time, poster_ip, enable_bbcode, enable_html, enable_smilies, enable_sig, post_icon) VALUES ('$topic_id', '$forum_id', " . $userdata['user_id'] . ", '$post_username', '$current_time', '$user_ip', '$bbcode_on', '$html_on', '$smilies_on', '$attach_sig', $post_icon)" : "UPDATE " . POSTS_TABLE . " SET post_username = '$post_username', enable_bbcode = '$bbcode_on', enable_html = '$html_on', enable_smilies = '$smilies_on', enable_sig = '$attach_sig', post_icon = $post_icon" . $edited_sql . " WHERE post_id = '$post_id'";
+        $sql = ($mode != "editpost") ? "INSERT INTO " . POSTS_TABLE . " (topic_id, 
+		                                                                 forum_id, 
+																		poster_id, 
+																	post_username, 
+																	    post_time, 
+																		poster_ip, 
+																	enable_bbcode, 
+																	  enable_html, 
+																   enable_smilies, 
+																       enable_sig, 
+																	    post_icon) 
+																		
+	    VALUES ('$topic_id', 
+	            '$forum_id', 
+   ".$userdata['user_id'].", 
+           '$post_username', 
+		    '$current_time', 
+			     '$user_ip', 
+			   '$bbcode_on', 
+			     '$html_on', 
+			  '$smilies_on', 
+			  '$attach_sig', 
+			    $post_icon)" : "UPDATE ".POSTS_TABLE." 
+				
+	              SET post_username = '$post_username', 
+	                      enable_bbcode = '$bbcode_on', 
+						    enable_html = '$html_on', 
+						 enable_smilies = '$smilies_on', 
+						     enable_sig = '$attach_sig', 
+							  post_icon = $post_icon".$edited_sql." 
+   
+   WHERE post_id = '$post_id'";
 /*****[END]********************************************
  [ Mod:     Post Icons                         v1.0.1 ]
  ******************************************************/
@@ -370,8 +436,17 @@ if ($mode == 'newtopic')
                 $post_id = $db->sql_nextid();
         }
 
-        $sql = ($mode != 'editpost') ? "INSERT INTO " . POSTS_TEXT_TABLE . " (post_id, post_subject, bbcode_uid, post_text) VALUES ('$post_id', '$post_subject', '$bbcode_uid', '$post_message')" : "UPDATE " . POSTS_TEXT_TABLE . " SET post_text = '$post_message',  bbcode_uid = '$bbcode_uid', post_subject = '$post_subject' WHERE post_id = '$post_id'";
-        if (!$db->sql_query($sql))
+		$sql = ($mode != 'editpost') ? "INSERT INTO " . POSTS_TEXT_TABLE . " (post_id, 
+		                                                                 post_subject, 
+																		   bbcode_uid, 
+																		    post_text) 
+																			
+		VALUES ('$post_id', 
+		   '$post_subject', 
+		     '$bbcode_uid', 
+		   '$post_message')" : "UPDATE ".POSTS_TEXT_TABLE." SET post_text = '$post_message',bbcode_uid = '$bbcode_uid',post_subject = '$post_subject' WHERE post_id = '$post_id'";
+        
+		if (!$db->sql_query($sql))
         {
                 message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
         }
@@ -423,10 +498,10 @@ if ($mode == 'newtopic')
                         $poll_id = $db->sql_nextid();
                 }
 
-                @reset($poll_options);
+                reset($poll_options);
 
                 $poll_option_id = 1;
-                while (list($option_id, $option_text) = each($poll_options))
+				foreach ($poll_options as $option_id => $option_text)
                 {
                         if (!empty($option_text))
                         {
@@ -666,7 +741,10 @@ function delete_post($mode, &$post_data, &$message, &$meta, &$forum_id, &$topic_
                 {
                         if ($post_data['first_post'])
                         {
-                                $forum_update_sql .= ', forum_topics = forum_topics - 1';
+                         
+                                $forum_update_sql = '';
+
+						        $forum_update_sql .= ', forum_topics = forum_topics - 1';
                                 $sql = "DELETE FROM " . TOPICS_TABLE . "
                                         WHERE topic_id = '$topic_id'
                                                 OR topic_moved_id = '$topic_id'";
@@ -822,7 +900,7 @@ function user_notification($mode, &$post_data, &$topic_title, &$forum_id, &$topi
                                       $attachment ="\n------------------------------------------------------------------\n";
                                 }
                                 // Sixty second limit
-                                @set_time_limit(60);
+                                set_time_limit(60);
 
                                 do
                                 {
@@ -840,12 +918,12 @@ function user_notification($mode, &$post_data, &$topic_title, &$forum_id, &$topi
                                 //
                                 if (preg_match('/[c-z]:\\\.*/i', getenv('PATH')) && !$board_config['smtp_delivery'])
                                 {
-                                        $ini_val = (@phpversion() >= '4.0.0') ? 'ini_get' : 'get_cfg_var';
+                                        $ini_val = (phpversion() >= '4.0.0') ? 'ini_get' : 'get_cfg_var';
 
                                         // We are running on windows, force delivery to use our smtp functions
                                         // since php's are broken by default
                                         $board_config['smtp_delivery'] = 1;
-                                        $board_config['smtp_host'] = @$ini_val('SMTP');
+                                        $board_config['smtp_host'] = $ini_val('SMTP');
                                 }
 
                                 if (count($bcc_list_ary))
@@ -861,9 +939,11 @@ function user_notification($mode, &$post_data, &$topic_title, &$forum_id, &$topi
                                     obtain_word_list($orig_word, $replacement_word);
 
                                     $topic_title = (count($orig_word)) ? preg_replace($orig_word, $replacement_word, unprepare_message($topic_title)) : unprepare_message($topic_title);
-
-                                    @reset($bcc_list_ary);
-                                    @reset($user_name);
+                                    
+									if (isset($bcc_list_ary))
+                                    reset($bcc_list_ary);
+                                    if (isset($user_name))
+									reset($user_name);
 
                                     $notify_body_pattern    = array(
                                         '{USERNAME}',
@@ -890,10 +970,10 @@ function user_notification($mode, &$post_data, &$topic_title, &$forum_id, &$topi
                                     );
 
                                     $email_data = array(
-                                        'email'         => $row['user_email'],
-                                        'from'          => $board_config['board_email'],
-                                        'reply_to'      => $board_config['board_email'],
-                                        'subject'       => $lang['Topic_reply_notification'],
+                                        'email'         => $row['user_email'] ?? '',
+                                        'from'          => $board_config['board_email']?? '',
+                                        'reply_to'      => $board_config['board_email'] ?? '',
+                                        'subject'       => $lang['Topic_reply_notification'] ?? '',
                                         'signature'     => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '',
                                         'content_type'  => 'text/html',
                                         'charset'       => 'UTF-8',
@@ -902,9 +982,9 @@ function user_notification($mode, &$post_data, &$topic_title, &$forum_id, &$topi
                                         'topic_title'   => $topic_title,
                                         'sitename'      => $board_config['sitename'],
                                         'topic_link'    => $server_protocol . $server_name . $server_port . $script_name . '&' . POST_POST_URL . "=$post_id#$post_id",
-                                        'reply_by'      => $poster_name,
-                                        'contents'      => $text,
-                                        'attachment'    => $attachment,
+                                        'reply_by'      => $poster_name ?? '',
+                                        'contents'      => $text ?? '',
+                                        'attachment'    => $attachment ?? '',
                                         'stop_watching' => $server_protocol . $server_name . $server_port . $script_name . '&' . POST_TOPIC_URL . "=$topic_id&unwatch=topic",
                                         'signature'     => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : ''
                                     );
@@ -919,9 +999,9 @@ function user_notification($mode, &$post_data, &$topic_title, &$forum_id, &$topi
                                     $content = str_replace( '{U_STOP_WATCHING_TOPIC}', '<a href="'.$email_data['stop_watching'].'">'.$email_data['stop_watching'].'</a>', $content );
                                     $content = str_replace( '{EMAIL_SIG}', $email_data['signature'], $content );
 
-                                    while (list($user_lang, $bcc_list) = each($bcc_list_ary))
+									foreach ($bcc_list_ary as $user_lang => $bcc_list)
                                     {
-                                        $name_list = $user_name[$user_lang];
+                                        $name_list = $user_name[$user_lang] ?? '';
                                         $headers[] = 'From: '.$email_data['from'];
                                         for ($i = 0; $i < count($bcc_list); $i++):
                                             $headers[] = 'Bcc: '.$bcc_list[$i];
@@ -930,7 +1010,7 @@ function user_notification($mode, &$post_data, &$topic_title, &$forum_id, &$topi
 
                                         $headers[] = 'Reply-To: '.$email_data['reply_to'];
                                         $headers[] = 'Content-Type: '.$email_data['content_type'].'; charset='.$email_data['charset'];
-                                        evo_phpmailer( $addbcc, $email_data['subject'], $content, $headers );
+                                        phpmailer( $addbcc, $email_data['subject'], $content, $headers );
                                     }
                                 }
                         }
@@ -1040,7 +1120,10 @@ function generate_smilies($mode, $page_id)
                         $row = 0;
                         $col = 0;
 
-                        while (list($smile_url, $data) = @each($rowset))
+                        if(!isset($lang['Emoticons']))
+                        $lang['Emoticons'] = 'Emoticons';
+				        						
+						foreach ($rowset as $smile_url => $data)
                         {
                                 if (!$col)
                                 {

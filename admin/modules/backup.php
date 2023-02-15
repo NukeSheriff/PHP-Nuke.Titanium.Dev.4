@@ -49,14 +49,15 @@ if (is_mod_admin())
   
 $crlf = "\n";
 $filename = $dbname.'_'.date('d-m-Y').'.sql';
-$tablelist = (isset($_POST['tablelist'])) ? $_POST['tablelist'] : $db->sql_fetchtables($dbname);
+$tablelist = $_POST['tablelist'] ?? $db->sql_fetchtables($dbname);
 @set_time_limit(0);
 
+global $dbname, $tablelist, $filename;
 switch ($op) {
     case 'BackupDB':
         if (empty($tablelist)) { echo('No tables found'); }
         require_once(NUKE_CLASSES_DIR.'class.database.php');
-        DB::backup($dbname, $tablelist, $filename, isset($_POST['dbstruct']), isset($_POST['dbdata']), isset($_POST['drop']), isset($_POST['gzip']));
+        (new DB)->backup($dbname, $tablelist, $filename, $_POST['dbstruct'], $_POST['dbdata'], $_POST['drop'], $_POST['gzip']);
         break;
     
 	case 'OptimizeDB':
@@ -296,7 +297,7 @@ switch ($op) {
         OpenTable();
         echo '<br />';
 		echo '<form method="post" name="backup" action="'.$admin_file.'.php" enctype="multipart/form-data">';
-        echo "<script language=\"JavaScript\" type=\"text/javascript\">
+        echo "<script>
         <!--
         function setSelectOptions(the_form, the_select, do_check)
         {

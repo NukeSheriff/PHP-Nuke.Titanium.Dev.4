@@ -22,6 +22,7 @@
 
 global $admin_file, $sitename, $nukeurl, $admlang;
 
+define_once("_ALL","All");
 /**
  * Language Defines: Live Feed
  * @since 2.0.9d
@@ -151,7 +152,7 @@ $admlang['preferences']['site_slogon']		= 'Site Slogan';
 $admlang['preferences']['admin_email']		= 'Administrator Email';
 $admlang['preferences']['items']			= 'Number of Items in Top Page';
 $admlang['preferences']['stories']			= 'Stories Number in Home';
-$admlang['preferences']['stories_old']		= 'Stories in Old Articles Box';
+$admlang['preferences']['blogs_old']		= 'Stories in Old Articles Box';
 $admlang['preferences']['ultra_mode']		= 'Activate Ultramode';
 $admlang['preferences']['guests_post'] 		= 'Allow Anonymous to Post';
 $admlang['preferences']['locale_format'] 	= 'Locale Time Format';
@@ -385,7 +386,7 @@ $admlang['global']['is_out_of_date']	= 'Out of date - Update Required';
 $admlang['global']['who_view'] 			= 'Who can View This';
 $admlang['global']['admins_only']		= 'Administrators Only';
 $admlang['global']['users_only'] 		= 'Registered Users Only';
-$admlang['global']['guests_only'] 		= 'Anonymous Users Only';
+$admlang['global']['guests_only'] 		= 'Personal Users Only';
 $admlang['global']['all_visitors'] 		= 'All Visitors';
 $admlang['global']['groups_only'] 		= 'Groups Only';
 

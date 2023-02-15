@@ -3,7 +3,6 @@
   PHP-Nuke Titanium | Nuke-Evolution Xtreme : PHP-Nuke Web Portal System
  =======================================================================*/
 
-
 /************************************************************************/
 /* PHP-NUKE: Web Portal System                                          */
 /* ===========================                                          */
@@ -43,6 +42,7 @@ if (!defined('MODULE_FILE')) {
 }
 
 $module_name = basename(dirname(__FILE__));
+
 get_lang($module_name);
 
 function alpha() {
@@ -52,16 +52,25 @@ function alpha() {
     $num = count($alphabet) - 1;
     echo "<center>[ ";
     $counter = 0;
-    while (list(, $ltr) = each($alphabet)) {
+    
+	//while (list(, $ltr) = each($alphabet)) 
+	foreach($alphabet as $ltr => $value)
+	{
         echo "<a href=\"modules.php?name=$module_name&amp;rop=$ltr\">$ltr</a>";
-        if ( $counter == round($num/2) ) {
+    
+	    if( $counter == round($num/2) ) 
+		{
             echo " ]\n<br />\n[ ";
-        } elseif ( $counter != $num ) {
+        } 
+		elseif 
+		( $counter != $num ) {
             echo "&nbsp;|&nbsp;\n";
         }
-        $counter++;
+        
+		$counter++;
     }
-    echo " ]</center><br /><br />\n\n\n";
+    
+	echo " ]</center><br /><br />\n\n\n";
     echo "<center>[ <a href=\"modules.php?name=$module_name&amp;rop=write_review\">"._WRITEREVIEW."</a> ]</center><br /><br />\n\n";
 }
 
@@ -121,7 +130,7 @@ function write_review() {
         }
         echo '</select><br /><br />';
     } else {
-        echo "<input type=\"hidden\" name=\"rlanguage\" value=\"$rlanguage\"><br /><br />";
+        echo '<input type="hidden" name="rlanguage" value="'.$rlanguage.'">';
     }
 /*****[BEGIN]******************************************
  [ Mod:     Custom Text Area                   v1.0.0 ]
@@ -263,7 +272,7 @@ function preview_review($date, $title, $text, $reviewer, $email, $score, $cover,
         $year2 = substr($date,0,4);
         $month = substr($date,5,2);
         $day = substr($date,8,2);
-				$fdate = EvoDate($board_config['default_dateformat'], mktime (0,0,0,$month,$day,$year), $board_config['board_timezone']);
+				$fdate = FormatDate($board_config['default_dateformat'], mktime (0,0,0,$month,$day,$year), $board_config['board_timezone']);
         echo "<table border=\"0\" width=\"100%\"><tr><td colspan=\"2\">";
         echo "<p><span class=\"title\"><i><strong>".stripslashes($title)."</strong></i></span><br />";
         echo "<blockquote><p>";
@@ -412,14 +421,14 @@ function reviews_index() {
     $y = 1;
     for ($x = 0; $x < 10; $x++)    {
         $myrow = $db->sql_fetchrow($result_pop);
-        $id = intval($myrow['id']);
-        $title = stripslashes(check_html($myrow['title'], "nohtml"));
-        $hits = intval($myrow['hits']);
+        $id = intval(isset($myrow['id']));
+        $title = stripslashes(check_html(isset($myrow['title']), "nohtml"));
+        $hits = intval(isset($myrow['hits']));
         echo "<tr><td width=\"50%\" bgcolor=\"$bgcolor3\">$y) <a href=\"modules.php?name=$module_name&amp;rop=showcontent&amp;id=$id\">$title</a></td>";
         $myrow2 = $db->sql_fetchrow($result_rec);
-        $id = intval($myrow2['id']);
-        $title = stripslashes(check_html($myrow2['title'], "nohtml"));
-        $hits = intval($myrow2['hits']);
+        $id = intval(isset($myrow2['id']));
+        $title = stripslashes(check_html(isset($myrow2['title']), "nohtml"));
+        $hits = intval(isset($myrow2['hits']));
         echo "<td width=\"50%\" bgcolor=\"$bgcolor3\">$y) <a href=\"modules.php?name=$module_name&amp;rop=showcontent&amp;id=$id\">$title</a></td></tr>";
         $y++;
     }
@@ -566,7 +575,7 @@ function postcomment($id, $title) {
     <option name=score value=1>1</option>
     </select><br /><br />
     <strong>"._YOURCOMMENT."</strong><br />
-    <textarea name=comments rows=10 cols=70></textarea><br />";
+    <textarea name=\"comments\" style=\"visibility: hidden; display: none;\" rows=\"10\" cols=\"70\"></textarea><br />";
     echo "<table>".security_code(array(7), 'normal', 1)."</table>";
     echo "<br /><br />
     <input type=hidden name=rop value=savecomment>
@@ -674,7 +683,7 @@ function showcontent($id, $page) {
     $year = substr($date,0,4);
     $month = substr($date,5,2);
     $day = substr($date,8,2);
-		$fdate = EvoDate($board_config['default_dateformat'], mktime (0,0,0,$month,$day,$year), $board_config['board_timezone']);
+		$fdate = FormatDate($board_config['default_dateformat'], mktime (0,0,0,$month,$day,$year), $board_config['board_timezone']);
     $title = $myrow['title'];
     $title = Fix_Quotes(check_html($title, nohtml));
 /*****[BEGIN]******************************************

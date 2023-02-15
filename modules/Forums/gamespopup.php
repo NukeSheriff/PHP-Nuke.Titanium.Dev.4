@@ -3,7 +3,6 @@
   PHP-Nuke Titanium | Nuke-Evolution Xtreme : PHP-Nuke Web Portal System
  =======================================================================*/
 
-
 /***************************************************************************
  *                              games_popup.php
  *                            -------------------
@@ -32,6 +31,7 @@ if ($popup != "1"){
 else
 {
     $phpbb_root_path = NUKE_FORUMS_DIR;
+    echo '<script src="includes/ruffle-core/ruffle.js"></script>'."\n";
 }
 
 define('IN_PHPBB', true);
@@ -41,7 +41,7 @@ include($phpbb_root_path . 'common.'.$phpEx);
 //
 // Start session management
 //
-$userdata = session_pagestart($user_ip, PAGE_GAME, $nukeuser);
+$userdata = session_pagestart($user_ip, PAGE_GAME);
 init_userprefs($userdata);
 //
 // End session management
@@ -104,13 +104,12 @@ if ( !($result = $db->sql_query($sql)) )
         message_die(GENERAL_MESSAGE, $message);
     }
 }
-//End Limit Play mod
-if (!empty($HTTP_POST_VARS['gid']) || !empty($HTTP_GET_VARS['gid'])) {
-        $gid = (!empty($HTTP_POST_VARS['gid'])) ? intval($HTTP_POST_VARS['gid']) : intval($HTTP_GET_VARS['gid']);
-} else {
-        message_die(GENERAL_ERROR, "No game is specified");
-}
 
+if ((isset($_POST['gid']) && !empty($_POST['gid'])) && (isset($_GET['gid']) && !empty($_GET['gid']))) 
+    $gid = (isset($_GET['gid']) && !stristr($_GET['gid'],'..') && !stristr($_GET['gid'],'://')) ? addslashes(trim($_GET['gid'])) : false;
+else 
+    $gid = (isset($_REQUEST['gid']) && !stristr($_REQUEST['gid'],'..') && !stristr($_REQUEST['gid'],'://')) ? addslashes(trim($_REQUEST['gid'])) : false;
+	
 $sql = "SELECT g.* , u.username, MAX(s.score_game) AS highscore FROM " . GAMES_TABLE . " g LEFT JOIN " . SCORES_TABLE . " s ON g.game_id = s.game_id LEFT JOIN " . USERS_TABLE . " u ON g.game_highuser = u.user_id WHERE g.game_id = $gid GROUP BY g.game_id,g.game_highscore";
 
 if (!($result = $db->sql_query($sql))) {
@@ -159,7 +158,26 @@ if($mode == "done")
                     $pos = $posreelle;
                 }
 
-                $lastscore = $row['score_game'];
+		       $row['trophy'] = '';
+
+               # Ordinal Number Suffix - TheGhost 11:05 pm Saturday 10/22/2022
+		       $last = substr($posreelle,-1);
+
+               if($last > 3 or $last == 0 or ($posreelle >= 11 and $posreelle <= 19 )) {
+                $row['trophy'] = '<font size="2">th</font>';
+               }
+               elseif($last == 3) {
+                $row['trophy'] = '<font size="2">rd</font>';
+               }
+               elseif($last == 2) {
+                $row['trophy'] = '<font size="2">nd</font>';
+               }
+               else 
+               {
+                $row['trophy'] = '<font size="2">st</font>';
+               }
+            
+			    $lastscore = $row['score_game'];
                 $class = ($class == 'row1') ? 'row2' : 'row1';
                 $template->assign_block_vars('scorerow', array(
                             'CLASS' => $class,
@@ -173,6 +191,7 @@ if($mode == "done")
  ******************************************************/
                 'URL_STATS' => '<nobr><a class="cattitle" href="' . append_sid("statarcade.$phpEx?uid=" . $row['user_id']) . '">' . "<img src='modules/Forums/templates/" . $theme['template_name'] . "/images/loupe.gif' align='absmiddle' border='0' alt='" . $lang['statuser'] . " " . $row['username'] . "'>" . '</a></nobr>',
                 'SCORE' => number_format($row['score_game']),
+				'TROPHY' => $row['trophy'],
                 'DATEHIGH' => create_date($board_config['default_dateformat'] , $row['score_date'] , $board_config['board_timezone']))
                         );
 
@@ -259,11 +278,16 @@ $ourrow = $db->sql_fetchrow($result);
 $cat_title = $ourrow['arcade_cattitle'];
 
 $template->assign_vars(array(
-        'SWF_GAME' => $row['game_swf'] ,
-        'GAMEHASH' => $gamehash_id,
-        'L_GAME' => $row['game_name'],
-                'HIGHUSER' => (!empty($row['username'])) ? "'s Highscore: ".$row['username']." - ": " : No Highscore",
-                'HIGHSCORE' => $row['highscore'])
+        
+  'SWF_GAME' => $row['game_swf'] ,
+  
+  'GAMEHASH' => $gamehash_id,
+  
+  'L_GAME' => $row['game_name'],
+  
+  'HIGHUSER' => (!empty($row['username'])) ? "'s Highscore: ".$row['username']." - ": " : No Highscore",
+  
+  'HIGHSCORE' => $row['highscore'])
 );
 
 //

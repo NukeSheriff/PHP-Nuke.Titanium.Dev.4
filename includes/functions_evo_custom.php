@@ -1,249 +1,4 @@
 <?php
-
-/**
- * Send mail, similar to PHP's mail
- *
- * @since 2.0.9e
- *
- * A true return value does not automatically mean that the user received the
- * email successfully. It just only means that the method used was able to
- * process the request without any errors.
- *
- * @global PHPMailer $mail
- *
- * @param string|array $to          Array or comma-separated list of email addresses to send message.
- * @param string       $subject     Email subject
- * @param string       $message     Message contents
- * @param string|array $headers     Optional. Additional headers.
- * @param string|array $attachments Optional. Files to attach.
- * @return bool Whether the email contents were sent successfully.
- */
-function evo_phpmailer($to, $subject, $message, $headers = '', $attachments = array())
-{
-	global $mail, $board_config, $nukeconfig;
-
-	if ( ! ( $mail instanceof PHPMailer ) ) {
-		require_once 'includes/classes/class.phpmailer.php';
-		require_once 'includes/classes/class.smtp.php';
-		$mail = new PHPMailer;
-	}
-
-	if ( isset( $to ) ) {
-		$to = $to;
-	}
- 
-	if ( !is_array( $to ) ) {
-		$to = explode( ',', $to );
-	}
-
-	// Headers
-	$cc = $bcc = $reply_to = array();
-
-	// $mail->SMTPDebug = 2;
-
-	if ( $board_config['smtp_delivery'] == '1' ):
-
-		$mail->Host = $board_config['smtp_host'];
-		$mail->Port = $board_config['smtp_port'];
-
-		$mail->isSMTP();
-
-		$mail->SMTPSecure = $board_config['smtp_encryption'];
-
-		// if ( $board_config['smtp_encryption'] != 'none' ):
-		//     $mail->SMTPSecure = $board_config['smtp_encryption'];
-		// endif;
-
-		if ( 'none' === $board_config['smtp_encryption'] ):
-
-			$mail->SMTPSecure  = '';
-			$mail->SMTPAutoTLS = false;
-
-		endif;
-
-		if ( $board_config['smtp_auth'] == 1 ):
-
-			$mail->SMTPAuth = true;
-			$mail->Username = $board_config['smtp_username'];
-
-			if( defined('SMTP_Password') && SMTP_Password ):
-				$mail->Password = SMTP_Password;
-			else:
-				$mail->Password = $board_config['smtp_password'];
-			endif;
-
-		else:
-			$mail->SMTPAuth = false;
-		endif;
-
-	else:
-		$mail->IsMail();
-	endif;
-
-	/* sort the headers */
-	if ( empty( $headers ) ) 
-	{
-		$headers = array();
-	}
-	else
-	{
-		if ( !is_array( $headers ) ) {
-			// Explode the headers out, so this function can take both
-			// string headers and an array of headers.
-			$tempheaders = explode( "\n", str_replace( "\r\n", "\n", $headers ) );
-		} 
-		else 
-		{
-			$tempheaders = $headers;
-		}
-
-		// If it's actually got contents
-		if ( !empty( $tempheaders ) ) {
-			// Iterate through the raw headers
-			foreach ( (array) $tempheaders as $header ) {
-				if ( strpos($header, ':') === false ) {
-					if ( false !== stripos( $header, 'boundary=' ) ) {
-						$parts = preg_split('/boundary=/i', trim( $header ) );
-						$boundary = trim( str_replace( array( "'", '"' ), '', $parts[1] ) );
-					}
-					continue;
-				}
-				// Explode them out
-				list( $name, $content ) = explode( ':', trim( $header ), 2 );
- 
-				// Cleanup crew
-				$name    = trim( $name    );
-				$content = trim( $content );
- 
-				switch ( strtolower( $name ) ) 
-				{
-					case 'from':
-						$bracket_pos = strpos( $content, '<' );
-						if ( $bracket_pos !== false ) {
-							// Text before the bracketed email is the "From" name.
-							if ( $bracket_pos > 0 ) {
-								$from_name = substr( $content, 0, $bracket_pos - 1 );
-								$from_name = str_replace( '"', '', $from_name );
-								$from_name = trim( $from_name );
-							}
- 
-							$from_email = substr( $content, $bracket_pos + 1 );
-							$from_email = str_replace( '>', '', $from_email );
-							$from_email = trim( $from_email );
- 
-						// Avoid setting an empty $from_email.
-						} elseif ( '' !== trim( $content ) ) {
-							$from_email = trim( $content );
-						}
-						break;
-					case 'content-type':
-						if ( strpos( $content, ';' ) !== false ) {
-							list( $type, $charset_content ) = explode( ';', $content );
-							$content_type = trim( $type );
-							if ( false !== stripos( $charset_content, 'charset=' ) ) {
-								$charset = trim( str_replace( array( 'charset=', '"' ), '', $charset_content ) );
-							} elseif ( false !== stripos( $charset_content, 'boundary=' ) ) {
-								$boundary = trim( str_replace( array( 'BOUNDARY=', 'boundary=', '"' ), '', $charset_content ) );
-								$charset = '';
-							}
- 
-						// Avoid setting an empty $content_type.
-						} elseif ( '' !== trim( $content ) ) {
-							$content_type = trim( $content );
-						}
-						break;
-					case 'cc':
-						$cc = array_merge( (array) $cc, explode( ',', $content ) );
-						break;
-					case 'bcc':
-						$bcc = array_merge( (array) $bcc, explode( ',', $content ) );
-						break;
-					case 'reply-to':
-						$reply_to = array_merge( (array) $reply_to, explode( ',', $content ) );
-						break;
-					default:
-						// Add it to our grand headers array
-						$headers[trim( $name )] = trim( $content );
-						break;
-				}
-			}
-		}
-	}
-
-	$address_headers = compact( 'to', 'cc', 'bcc', 'reply_to' );
-	foreach ( $address_headers as $address_header => $addresses ) 
-	{
-		if ( empty( $addresses ) ) {
-			continue;
-		}
- 
-		foreach ( (array) $addresses as $address ) {
-			try {
-				// Break $recipient into name and address parts if in the format "Foo <bar@baz.com>"
-				$recipient_name = '';
- 
-				if ( preg_match( '/(.*)<(.+)>/', $address, $matches ) ) {
-					if ( count( $matches ) == 3 ) {
-						$recipient_name = $matches[1];
-						$address        = $matches[2];
-					}
-				}
- 
-				switch ( $address_header ) {
-					case 'to':
-						$mail->addAddress( $address, $recipient_name );
-						break;
-					case 'cc':
-						$mail->addCc( $address, $recipient_name );
-						break;
-					case 'bcc':
-						$mail->addBcc( $address, $recipient_name );
-						break;
-					case 'reply_to':
-						$mail->addReplyTo( $address, $recipient_name );
-						break;
-				}
-			} catch ( phpmailerException $e ) {
-				continue;
-			}
-		}
-	}
-
-	if ( !isset( $from_name ) )
-		$from_name = $board_config['sitename'];
-
-	if ( !isset( $from_email ) ) 
-		$from_email = $nukeconfig['adminmail'];
-
-	$mail->ContentType = ( !isset($content_type) ) ? 'text/plain' : $content_type;
-	$mail->CharSet = ( !isset( $charset ) ) ? 'utf-8' : $charset;
-	$mail->From = $from_email;
-	$mail->FromName = $from_name;
-
-	// Set whether it's plaintext, depending on $content_type
-	if ( 'text/html' == $content_type )
-		$mail->isHTML(true);
-
-	$mail->Subject = $subject;
-	$mail->Body = $message;
-
-	if (!$mail->send()) {
-		$mail->ErrorInfo;
-		$mail->clearAllRecipients();
-		$mail->clearReplyTos();
-		OpenTable();
-		echo 'Message could not be sent.<br />';
-		CloseTable();
-		include_once(NUKE_BASE_DIR.'footer.php');
-		exit;
-		// return FALSE;
-	} else { 
-		$mail->clearAllRecipients();
-		$mail->clearReplyTos();      
-		return TRUE;
-	}
-}
-
 /**
  * Gets the variable and runs all the proper sub functions
  *
@@ -554,14 +309,14 @@ function get_image_viewer($slideshow = '',$caption = '')
  * @param int    $strip_html    Provide the maximum value.
  * @return string Displays the progress bar.
  */
-function display_progress_bar($type='css3',$class='progress-bar blue stripes', $value='0', $max='100')
+function display_progress_bar($type='css3',$class='progress-bar', $value='0', $max='100')
 {
 	if ($type == 'css3'):
 		$progress_bar  = '<div class="'.$class.'">';
-		$progress_bar .= '  <span data-percentage="'.$value.'" style="max-width:100%;"></span>';
+		$progress_bar .= '  <span style="border-radius: 15px; -moz-border-radius: 15px; max-width:100%;" data-percentage="'.$value.'"></span>';
 		$progress_bar .= '</div>';
 	else:
-		$progress_bar = '<progress class="'.$class.'" data-percentage="'.$value.'" value="'.$value.'" max="'.$max.'"></progress>';
+		$progress_bar = '<progress style="border-radius: 15px; -moz-border-radius: 15px;" class="'.$class.'" data-percentage="'.$value.'" value="'.$value.'" max="'.$max.'"></progress>';
 	endif;
 	return $progress_bar;
 }
@@ -837,7 +592,10 @@ function url_shorten( $url, $length = 35 ) {
 function get_user_avatar($user_id) {
 	global $db, $board_config, $userinfo;
 	static $avatarData;
-
+    
+	if(!isset($avatarData[$user_id]))
+    $avatarData[$user_id] = '';
+		
 	if(is_array($avatarData[$user_id]) && !empty($avatarData[$user_id])) { return $avatarData[$user_id]; }
 	if ( $user_id == $userinfo['user_id'] ) {
 		 $user_avatar       = $userinfo['user_avatar'];
@@ -861,57 +619,20 @@ function get_user_avatar($user_id) {
 				break;
 		}
 	}
-	$default_member_avatar = evo_image('avatar_member.png', 'Forums');
-	$default_guest_avatar  = evo_image('avatar_guest.png', 'Forums');
+	$default_member_avatar = img('blank.png', 'Forums');
+	$default_guest_avatar  = img('blank.png', 'Forums');
 	if ( empty($poster_avatar) && $user_id != ANONYMOUS) {
 		$poster_avatar = '<img src="'.  $default_member_avatar .'" alt="" border="0" />';
 	}
 	if ( $user_id == ANONYMOUS ) {
 		$poster_avatar = '<img src="'.  $default_guest_avatar .'" alt="" border="0" />';
 	}
+	
+	if(!isset($poser_avatar))
+    $poser_avatar = '';
+	
 	$avatarData[$user_id] = $poser_avatar;
 	return ($poster_avatar);
-}
-
-// evo_image function by ReOrGaNiSaTiOn
-function get_evo_image($imgfile='', $mymodule='') {
-	global $currentlang, $ThemeSel, $Default_Theme, $cache;
-	$tmp_imgfile = explode('.', $imgfile);
-	$cache_imgfile = $tmp_imgfile[0];
-	$evoimage = $cache->load($mymodule, 'EvoImage');
-	if(!empty($evoimage[$ThemeSel][$currentlang][$cache_imgfile])) {
-		return($evoimage[$ThemeSel][$currentlang][$cache_imgfile]);
-	}
-
-	if (@file_exists(NUKE_THEMES_DIR . $ThemeSel . '/images/' . $mymodule . '/lang_' . $currentlang . '/' . $imgfile)) {
-		$evoimage[$ThemeSel][$currentlang][$cache_imgfile] = "themes/".$ThemeSel."/images/$mymodule/lang_".$currentlang."/$imgfile";
-	} elseif (@file_exists(NUKE_THEMES_DIR . $ThemeSel . '/images/lang_' . $currentlang . '/' . $imgfile)) {
-		$evoimage[$ThemeSel][$currentlang][$cache_imgfile] = "themes/".$ThemeSel."/images/lang_".$currentlang."/$imgfile";
-	} elseif (@file_exists(NUKE_THEMES_DIR . $ThemeSel . '/images/' . $mymodule . '/' . $imgfile)) {
-		$evoimage[$ThemeSel][$currentlang][$cache_imgfile] = "themes/".$ThemeSel."/images/$mymodule/$imgfile";
-	} elseif (@file_exists(NUKE_THEMES_DIR . $ThemeSel . '/images/' . $imgfile)) {
-		$evoimage[$ThemeSel][$currentlang][$cache_imgfile] = "themes/".$ThemeSel."/images/$imgfile";
-	} elseif (@file_exists(NUKE_THEMES_DIR . $Default_Theme . '/images/' . $mymodule . '/lang_' . $currentlang . '/' . $imgfile)) {
-		$evoimage[$ThemeSel][$currentlang][$cache_imgfile] = "themes/".$Default_Theme."/images/$mymodule/lang_".$currentlang."/$imgfile";
-	} elseif (@file_exists(NUKE_THEMES_DIR . $Default_Theme . '/images/lang_' . $currentlang . '/' . $imgfile)) {
-		$evoimage[$ThemeSel][$currentlang][$cache_imgfile] = "themes/".$Default_Theme."/images/lang_".$currentlang."/$imgfile";
-	} elseif (@file_exists(NUKE_THEMES_DIR . $Default_Theme . '/images/' . $mymodule . '/' . $imgfile)) {
-		$evoimage[$ThemeSel][$currentlang][$cache_imgfile] = "themes/".$Default_Theme."/images/$mymodule/$imgfile";
-	} elseif (@file_exists(NUKE_THEMES_DIR . $Default_Theme . '/images/' . $imgfile)) {
-		$evoimage[$ThemeSel][$currentlang][$cache_imgfile] = "themes/".$Default_Theme."/images/$imgfile";
-	} elseif (@file_exists(NUKE_MODULES_DIR . $mymodule . '/images/lang_' . $currentlang . '/' . $imgfile)) {
-		$evoimage[$ThemeSel][$currentlang][$cache_imgfile] = "modules/".$mymodule."/images/lang_".$currentlang."/$imgfile";
-	} elseif (@file_exists(NUKE_MODULES_DIR . $mymodule . '/images/' . $imgfile)) {
-		$evoimage[$ThemeSel][$currentlang][$cache_imgfile] =  "modules/".$mymodule."/images/$imgfile";
-	} elseif (@file_exists(NUKE_IMAGES_DIR . $mymodule . '/' . $imgfile)) {
-		$evoimage[$ThemeSel][$currentlang][$cache_imgfile] = "images/".$mymodule."/$imgfile";
-	} elseif (@file_exists(NUKE_IMAGES_DIR . $imgfile)) {
-		$evoimage[$ThemeSel][$currentlang][$cache_imgfile] = "images/$imgfile";
-	} else {
-		$evoimage[$ThemeSel][$currentlang][$cache_imgfile] = '';
-	}
-	$cache->save($mymodule, 'EvoImage', $evoimage);
-	return($evoimage[$ThemeSel][$currentlang][$cache_imgfile]);
 }
 
 /**

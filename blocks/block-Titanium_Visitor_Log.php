@@ -20,7 +20,7 @@
 defined('NUKE_EVO') or die('Just go away, Shit Head!');
 
 global $db, $prefix, $userinfo;
-global $evouserinfo_avatar, $board_config, $userinfo; 
+global $evouserinfo_avatar, $phpbb2_board_config, $userinfo; 
 
 $max_height = '60';
 $max_width = '60';
@@ -59,8 +59,8 @@ while($whosbeen = $db->sql_fetchrow($result)):
 	   {
 		# user_allowavatar = 1
 		case USER_AVATAR_UPLOAD:
-		$avatar = '<td width="45px">'.( $board_config['allow_avatar_upload'] ) 
-		? '<div align="center"><img class="rounded-corners-last-vistors" style="max-height: '.$max_height.'px; max-width: '.$max_width.'px;" src="' . $board_config['avatar_path'] . '/' . $whosbeen['user_avatar'] . '" alt="" border="0" /></div></td>' : '</td>';
+		$avatar = '<td width="45px">'.( $phpbb2_board_config['allow_avatar_upload'] ) 
+		? '<div align="center"><img class="rounded-corners-last-vistors" style="max-height: '.$max_height.'px; max-width: '.$max_width.'px;" src="' . $phpbb2_board_config['avatar_path'] . '/' . $whosbeen['user_avatar'] . '" alt="" border="0" /></div></td>' : '</td>';
 		break;
 		# user_allowavatar = 2
 		case USER_AVATAR_REMOTE:
@@ -68,8 +68,8 @@ while($whosbeen = $db->sql_fetchrow($result)):
 		break;
 		# user_allowavatar = 3
 		case USER_AVATAR_GALLERY:
-		$avatar = '<td width="45px">'. ( $board_config['allow_avatar_local'] ) 
-		? '<div align="center"><img class="rounded-corners-last-vistors" style="max-height: '.$max_height.'px; max-width: '.$max_width.'px;" src="' . $board_config['avatar_gallery_path'] . '/' . (($whosbeen['user_avatar'] == 'blank.gif' || $whosbeen['user_avatar'] == 'gallery/blank.gif') ? 'blank.png' : $whosbeen['user_avatar']) . '" alt="" border="0" /></td>' : '</div></td>';
+		$avatar = '<td width="45px">'. ( $phpbb2_board_config['allow_avatar_local'] ) 
+		? '<div align="center"><img class="rounded-corners-last-vistors" style="max-height: '.$max_height.'px; max-width: '.$max_width.'px;" src="' . $phpbb2_board_config['avatar_gallery_path'] . '/' . (($whosbeen['user_avatar'] == 'blank.png' || $whosbeen['user_avatar'] == 'gallery/blank.png') ? 'blank.png' : $whosbeen['user_avatar']) . '" alt="" border="0" /></td>' : '</div></td>';
 		break;
 
 	   }
@@ -77,7 +77,7 @@ while($whosbeen = $db->sql_fetchrow($result)):
 	
 	
 	$content .= '<td align="center" width="45px"><a href="modules.php?name=Profile&mode=viewprofile&u='.$whosbeen['user_id'].'">'.$avatar.'</a></td>';
-    $content .= '<td align="left"><a class="turdball" style="text-decoration: none;" href="modules.php?name=Profile&mode=viewprofile&u='.$whosbeen['user_id'].'">
+    $content .= '<td align="left"><a class="visitorName" style="text-decoration: none;" href="modules.php?name=Profile&mode=viewprofile&u='.$whosbeen['user_id'].'">
 	<strong>&nbsp;&nbsp;'.UsernameColor($whosbeen['username']).'<br />&nbsp;&nbsp;<a style="text-decoration: none;" href="modules.php?name=Private_Messages&mode=post&u='.$whosbeen['user_id'].'"><font size="5" color="orange"><i class="bi bi-envelope"></i><font color="gold" size="5"><i class="bi bi-arrow-right-short"></i><i class="bi bi-mailbox"></i></font></font>
 	
 	&nbsp;<br />
